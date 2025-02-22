@@ -65,7 +65,7 @@ public class PolygonEditor extends JPanel
     private int currentVertex;
 
     private ImageIcon icon;
-    /** height of the the icon in the world (in metres) */
+    /** height of the icon in the world (in metres) */
     private float boxHeight;
     private int powerOf10;
 
@@ -291,7 +291,7 @@ public class PolygonEditor extends JPanel
         frame.setVisible(true);
     }
 
-    /** Update the display and print the current coordinate list to console. */
+   /** Update the display and print the current coordinate list to console. */
     private void updateView()
     {
         System.out.println(this);
