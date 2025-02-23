@@ -20,18 +20,19 @@ public class Game {
     /** Initialise a new Game. */
     public Game() {
 
-        //1. make an empty game world
+        // make an empty game world
         World world = new World();
-
+        //
         GameWorld Game = new GameWorld();
 
 
-        //3. make a view to look into the game world
+        // make a view to look into the game world
         GameView view = new GameView(Game, 500, 500);
 
+        Player player = new Player(Game);
 
-        //4. create a Java window (frame) and add the game
-        //   view to it
+        // create a Java window (frame) and add the game
+        // and view it
         final JFrame frame = new JFrame("Robo Run: Factory Escape");
         frame.add(view);
 
