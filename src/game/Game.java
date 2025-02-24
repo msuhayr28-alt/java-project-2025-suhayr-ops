@@ -1,15 +1,10 @@
 package game;
 
 import city.cs.engine.*;
-import city.cs.engine.Shape;
-import org.jbox2d.common.Vec2;
 
 import javax.swing.JFrame;
 
-import java.awt.*;
-import java.io.IOException;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
+
 
 /**
  * Your main game entry point
@@ -21,15 +16,21 @@ public class Game {
     public Game() {
 
         // make an empty game world
-        World world = new World();
-        //
-        GameWorld Game = new GameWorld();
-
+        GameWorld game = new GameWorld();
 
         // make a view to look into the game world
-        GameView view = new GameView(Game, 500, 500);
+        GameView view = new GameView(game, 500, 500);
 
-        Player player = new Player(Game);
+        Player player = game.getPlayer();
+
+        // Add PlayerController to handle movement
+        PlayerController controller = new PlayerController(player);
+        view.addKeyListener(controller);
+
+        // Ensure focus stays on the game view
+        view.setFocusable(true);
+        view.requestFocusInWindow(); // Use requestFocusInWindow() instead of requestFocus()
+
 
         // create a Java window (frame) and add the game
         // and view it
@@ -37,6 +38,7 @@ public class Game {
         frame.add(view);
 
 
+        
         // enable the frame to quit the application
         // when the x button is pressed
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -48,11 +50,12 @@ public class Game {
         // finally, make the frame visible
         frame.setVisible(true);
 
+
         //optional: uncomment this to make a debugging view
-         JFrame debugView = new DebugViewer(world, 500, 500);
+        JFrame debugView = new DebugViewer(game, 500, 500);
 
         // start our game world simulation!
-        world.start();
+        game.start();
     }
 
     /** Run the game. */
