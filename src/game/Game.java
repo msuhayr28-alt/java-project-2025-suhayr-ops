@@ -17,11 +17,12 @@ public class Game {
 
         // make an empty game world
         GameWorld game = new GameWorld();
+        Player player = game.getPlayer();
 
         // make a view to look into the game world
-        GameView view = new GameView(game, 500, 500);
+        GameView view = new GameView(game, 500, 500, player);
 
-        Player player = game.getPlayer();
+
 
         // Add PlayerController to handle movement
         PlayerController controller = new PlayerController(player);
@@ -50,12 +51,22 @@ public class Game {
         // finally, make the frame visible
         frame.setVisible(true);
 
-
         //optional: uncomment this to make a debugging view
         JFrame debugView = new DebugViewer(game, 500, 500);
 
         // start our game world simulation!
         game.start();
+
+        // **Game Loop to Update Platforms**
+        while (true) {
+            game.updatePlatform(); // Add more platforms when needed
+            try {
+                Thread.sleep(100); // Small delay to prevent too many updates
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     /** Run the game. */
