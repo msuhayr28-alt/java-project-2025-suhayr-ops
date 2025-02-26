@@ -38,10 +38,14 @@ public class GameWorld extends World {
         Shape leftWallShape = new BoxShape(0.5f, 1000f);
         StaticBody leftWall = new StaticBody(this, leftWallShape);
         leftWall.setPosition(new Vec2(-13, -2));
+        SolidFixture leftWallFixture = new SolidFixture(leftWall, leftWallShape);
+        leftWallFixture.setFriction(0);
         //created right wall so player doesn't fall of
         Shape rightWallShape = new BoxShape(0.5f, 1000f);
         StaticBody rightWall = new StaticBody(this, rightWallShape);
         rightWall.setPosition(new Vec2(13, -2));
+        SolidFixture rightWallFixture = new SolidFixture(rightWall, rightWallShape);
+        rightWallFixture.setFriction(0);
 
     }
     private void addPlatform(float x, float y){
