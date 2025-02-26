@@ -65,8 +65,9 @@ public class GameWorld extends World {
     }
 
     private void generatePlatform(){
-        for(int i = 0; i < 3; i++){
-            float x = (float) (Math.random() * 10 - 5);
+        for(int i = 0; i < 5; i++){
+            double Random = Math.random() * 2;
+            float x = (float) (Random * 10 - 10);
             float y = lastPlatformY + 5 + (float) (Math.random() * 3);
             addPlatform(x, y);
         }

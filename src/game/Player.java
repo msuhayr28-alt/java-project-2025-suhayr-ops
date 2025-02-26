@@ -23,6 +23,10 @@ public class Player extends Walker{
             new BodyImage("data/walk2.png", 4),
             new BodyImage("data/walk3.png", 4)};
 
+    private static final BodyImage jumpingRightImage = new BodyImage("data/jump1.png", 4);
+    private static final BodyImage jumpingLeftImage = new BodyImage("data/jump1-1.png" , 4);
+
+
     private int currentFrame = 0;
     private boolean isMoving = false;
     private boolean facingRight = true;
@@ -55,50 +59,70 @@ public class Player extends Walker{
             }
         });
 
+        Sensor footSensor = new Sensor(this, new BoxShape(1f, 0.5f, new Vec2(0,-2)));
+
+        footSensor.addSensorListener(new SensorListener() {
+            @Override
+            public void beginContact(SensorEvent e) {
+                if (e.getContactBody() instanceof StaticBody) {
+                    setIdleImage(); // Switch to idle animation when landing
+                }
+            }
+
+            @Override
+            public void endContact(SensorEvent e) {
+                // Can be used for future jump logic (e.g., disable double jump)
+            }
+        });
+
 
     }
 
-        public void updateAnimation(){
-            if(isMoving){
-                this.removeAttachedImage(currentImage);
-                BodyImage[] selectedImage = facingRight ? walkRightImages : walkLeftImages;
-                currentImage = new AttachedImage(this, selectedImage[currentFrame], 1, 0, new Vec2(0, 0));
-                currentFrame = (currentFrame + 1) % selectedImage.length;
-            }
-        }
-
-        public void startWalking(float speed){
-            super.startWalking(speed);
-            if(speed > 0 && !facingRight){
-                facingRight = true;
-                setIdleImage();
-            }else if(speed < 0 && facingRight){
-                facingRight = false;
-                setIdleImage();
-            }
-            if (!isMoving) {
-                isMoving = true;
-                animationTimer.start();
-            }
-
-        }
-        public void stopWalking() {
-            super.stopWalking();
-            isMoving = false;
-            animationTimer.stop(); // Stop animation
-            setIdleImage();
-            this.setLinearVelocity(new Vec2(0, this.getLinearVelocity().y));
-
-        }
-
-        private void setIdleImage(){
+    public void updateAnimation(){
+        if(isMoving){
             this.removeAttachedImage(currentImage);
-            currentImage = new AttachedImage(this, facingRight ? idleRightImage : idleLeftImage, 1, 0, new Vec2(0, 0));
-
+            BodyImage[] selectedImage = facingRight ? walkRightImages : walkLeftImages;
+            currentImage = new AttachedImage(this, selectedImage[currentFrame], 1, 0, new Vec2(0, 0));
+            currentFrame = (currentFrame + 1) % selectedImage.length;
         }
+    }
+
+    public void startWalking(float speed){
+        super.startWalking(speed);
+        if(speed > 0 && !facingRight){
+            facingRight = true;
+            setIdleImage();
+        }else if(speed < 0 && facingRight){
+            facingRight = false;
+            setIdleImage();
+        }
+        if (!isMoving) {
+            isMoving = true;
+            animationTimer.start();
+        }
+    }
+
+    public void stopWalking() {
+        super.stopWalking();
+        isMoving = false;
+        animationTimer.stop(); // Stop animation
+        setIdleImage();
+        this.setLinearVelocity(new Vec2(0, this.getLinearVelocity().y));
+    }
+
+    public void jump(float speed){
+        super.jump(speed);
+        setJumpingImage();
+    }
+
+    public void setJumpingImage(){
+        this.removeAttachedImage(currentImage);
+        currentImage = new AttachedImage(this, facingRight ? jumpingRightImage : jumpingLeftImage, 1, 0, new Vec2(0,0));
+    }
 
 
-
-
-
+    private void setIdleImage(){
+        this.removeAttachedImage(currentImage);
+        currentImage = new AttachedImage(this, facingRight ? idleRightImage : idleLeftImage, 1, 0, new Vec2(0, 0));
+    }
 }
