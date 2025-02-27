@@ -71,7 +71,7 @@ public class Player extends Walker{
 
             @Override
             public void endContact(SensorEvent e) {
-                // Can be used for future jump logic (e.g., disable double jump)
+                // Can be used for future jumps when i want to implement a double jump
             }
         });
 

@@ -16,7 +16,17 @@ public class GameWorld extends World {
         player = new Player(this);
         player.setPosition(new Vec2(0, -7));
 
+        //first platform
+        Shape Platform = new BoxShape(2f , 0.75f);
+        StaticBody platform = new StaticBody(this, Platform);
+        platform.setPosition(new Vec2(5, -7));
+        platform.addImage(new BodyImage("data/ground.png", 1.6f));
 
+        createWalls();
+        createGround();
+    }
+
+    private void createGround(){
         float groundWidth = 2f;
         int numOfPlatforms = 13;
 
@@ -29,11 +39,8 @@ public class GameWorld extends World {
             ground.setPosition(new Vec2(-11 + (i *groundWidth), -12));
             ground.addImage(new BodyImage("data/ground.png", 2));
         }
-        Shape Platform = new BoxShape(1.5f , 1f);
-        StaticBody platform = new StaticBody(this, Platform);
-        platform.setPosition(new Vec2(5, -7));
-        platform.addImage(new BodyImage("data/ground.png", 2));
-
+    }
+    private void createWalls(){
         //created left wall so player doesn't fall of
         Shape leftWallShape = new BoxShape(0.5f, 1000f);
         StaticBody leftWall = new StaticBody(this, leftWallShape);
@@ -46,7 +53,6 @@ public class GameWorld extends World {
         rightWall.setPosition(new Vec2(13, -2));
         SolidFixture rightWallFixture = new SolidFixture(rightWall, rightWallShape);
         rightWallFixture.setFriction(0);
-
     }
     private void addPlatform(float x, float y){
         Shape Platform = new BoxShape(2f, 0.75f);
@@ -74,7 +80,7 @@ public class GameWorld extends World {
     }
 
     public Player getPlayer() {
-       return player;
+        return player;
     }
 
 

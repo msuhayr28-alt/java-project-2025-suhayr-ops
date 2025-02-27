@@ -6,8 +6,8 @@ import java.awt.event.KeyListener;
 public class PlayerController implements KeyListener {
 
     private final Player player;
-    private static final float JUMP_FORCE = 20;
-    private static final float WALK_FORCE = 4;
+    private static final float JUMP_FORCE = 12;
+    private static final float WALK_FORCE = 6;
 
     public PlayerController(Player player){
         this.player = player;
@@ -26,7 +26,7 @@ public class PlayerController implements KeyListener {
 
         }
         else if(key ==KeyEvent.VK_UP || key == KeyEvent.VK_SPACE){
-            if(player.getLinearVelocity().y < 1.5f){
+            if(player.getLinearVelocity().y < 6f){
                 player.jump(JUMP_FORCE);
                 System.out.println("Jumping");
 
