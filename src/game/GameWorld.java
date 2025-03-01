@@ -10,6 +10,10 @@ public class GameWorld extends World {
     private float lastPlatformY = -7; // Track the highest platform generated
     private List<StaticBody> platforms = new ArrayList<>(); // Store platforms
 
+    private List<StaticBody> movingPlatforms = new ArrayList<>();
+    private List<Float> platformSpeeds = new ArrayList<>();
+
+
     public GameWorld() {
         super();
         //creates the player
@@ -24,6 +28,7 @@ public class GameWorld extends World {
 
         createWalls();
         createGround();
+        startUpdateLoop();
     }
 
     private void createGround(){
@@ -54,13 +59,22 @@ public class GameWorld extends World {
         SolidFixture rightWallFixture = new SolidFixture(rightWall, rightWallShape);
         rightWallFixture.setFriction(0);
     }
-    private void addPlatform(float x, float y){
+    private void addPlatform(float x, float y, boolean isMoving){
         Shape Platform = new BoxShape(2f, 0.75f);
         StaticBody platform = new StaticBody(this, Platform);
         platform.setPosition(new Vec2(x, y));
         platform.addImage(new BodyImage("data/ground.png", 1.6f));
+
+
+        if(isMoving) {
+            movingPlatforms.add(platform);
+            platformSpeeds.add(0.05f);
+        }else{
+            platforms.add(platform);
+        }
+
         lastPlatformY= y;
-        platforms.add(platform);
+
     }
 
     public void updatePlatform(){
@@ -75,8 +89,43 @@ public class GameWorld extends World {
             double Random = Math.random() * 2;
             float x = (float) (Random * 10 - 10);
             float y = lastPlatformY + 5 + (float) (Math.random() * 3);
-            addPlatform(x, y);
+
+            boolean isMoving = Math.random() < 0.3;
+            addPlatform(x, y, isMoving);
+
         }
+    }
+
+    public void updateMovingPlatforms(){
+        for (int i = 0; i < movingPlatforms.size(); i++) {
+            StaticBody platform = movingPlatforms.get(i);
+            float speed = platformSpeeds.get(i);
+
+            Vec2 pos = platform.getPosition();
+            float newX = pos.x + speed;
+
+            // Reverse direction when platform reaches the boundary/wall
+            if (newX > 10 || newX < -10) {
+                speed *= -1;
+                platformSpeeds.set(i, speed);
+            }
+
+            platform.setPosition(new Vec2(newX, pos.y));
+        }
+    }
+    private void startUpdateLoop() {
+        this.addStepListener(new StepListener() {
+            @Override
+            public void preStep(StepEvent e) {
+                updatePlatform();
+                updateMovingPlatforms();
+            }
+
+            @Override
+            public void postStep(StepEvent e) {
+                // No post-processing needed right now
+            }
+        });
     }
 
     public Player getPlayer() {

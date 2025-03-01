@@ -6,7 +6,7 @@ import java.awt.event.KeyListener;
 public class PlayerController implements KeyListener {
 
     private final Player player;
-    private static final float JUMP_FORCE = 12;
+    private static final float JUMP_FORCE = 14;
     private static final float WALK_FORCE = 6;
 
     public PlayerController(Player player){
