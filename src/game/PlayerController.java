@@ -7,7 +7,7 @@ public class PlayerController implements KeyListener {
 
     private final Player player;
     private static final float JUMP_FORCE = 14;
-    private static final float WALK_FORCE = 6;
+    private static final float WALK_FORCE = 15;
 
     public PlayerController(Player player){
         this.player = player;
