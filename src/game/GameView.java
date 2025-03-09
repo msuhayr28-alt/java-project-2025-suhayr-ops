@@ -18,19 +18,19 @@ public class GameView extends UserView {
 
     protected void paintForeground(Graphics2D g) {
 
-        float minY = -15;  // Minimum Y level (ground level)
-        float minX = 0;  // Minimum X level
+        float minY = -15;  // minimum Y level (ground level)
+        float minX = 0;  // minimum X level
         float maxX = 0;  // maximum X level
 
 
-        // Get player's position
+        // gets player's position
         Vec2 playerPos = player.getPosition();
 
         if (playerPos.y > 0) {
-            // Ensure camera stays within the boundaries
+            // ensures the camera stays within the boundaries
             float cameraY = Math.max(playerPos.y, minY);
             float cameraX = Math.max(minX, Math.min(playerPos.x, maxX));
-            // Set the camera position
+            // set the camera position
             this.setCentre(new Vec2(cameraX, cameraY));
         }
 

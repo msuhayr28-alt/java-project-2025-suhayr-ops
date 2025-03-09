@@ -59,6 +59,8 @@ public class GameWorld extends World {
         SolidFixture rightWallFixture = new SolidFixture(rightWall, rightWallShape);
         rightWallFixture.setFriction(0);
     }
+    private List<Enemy> enemies = new ArrayList<>(); // stores enemies
+
     private void addPlatform(float x, float y, boolean isMoving){
         Shape Platform = new BoxShape(2f, 0.75f);
         StaticBody platform = new StaticBody(this, Platform);
@@ -71,6 +73,9 @@ public class GameWorld extends World {
             platformSpeeds.add(0.05f);
         }else{
             platforms.add(platform);
+        }
+        if (Math.random() < 0.2) {
+            generateEnemyPlatform(x, y);
         }
 
         lastPlatformY= y;
@@ -96,6 +101,11 @@ public class GameWorld extends World {
         }
     }
 
+    private void generateEnemyPlatform(float x, float y){
+        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player); // adjusts height so it sits on platform
+        enemies.add(enemy);
+    }
+
     public void updateMovingPlatforms(){
         for (int i = 0; i < movingPlatforms.size(); i++) {
             StaticBody platform = movingPlatforms.get(i);
@@ -104,13 +114,14 @@ public class GameWorld extends World {
             Vec2 pos = platform.getPosition();
             float newX = pos.x + speed;
 
-            // Reverse direction when platform reaches the boundary/wall
+            // reverse direction when platform reaches the boundary/wall
             if (newX > 10 || newX < -10) {
                 speed *= -1;
                 platformSpeeds.set(i, speed);
             }
 
             platform.setPosition(new Vec2(newX, pos.y));
+
         }
     }
     private void startUpdateLoop() {
@@ -123,7 +134,7 @@ public class GameWorld extends World {
 
             @Override
             public void postStep(StepEvent e) {
-                // No post-processing needed right now
+                // this is not needed right now
             }
         });
     }

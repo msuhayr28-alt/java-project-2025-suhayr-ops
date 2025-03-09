@@ -24,13 +24,13 @@ public class Game {
 
 
 
-        // Add PlayerController to handle movement
+        // add PlayerController to handle movement
         PlayerController controller = new PlayerController(player);
         view.addKeyListener(controller);
 
-        // Ensure focus stays on the game view
+        // ensures focus stays on the game view
         view.setFocusable(true);
-        view.requestFocusInWindow(); // Use requestFocusInWindow() instead of requestFocus()
+        view.requestFocusInWindow();
 
 
         // create a Java window (frame) and add the game
@@ -57,11 +57,11 @@ public class Game {
         // start our game world simulation!
         game.start();
 
-        // **Game Loop to Update Platforms**
+        // game Loop to Update Platforms
         while (true) {
-            game.updatePlatform(); // Add more platforms when needed
+            game.updatePlatform(); // add more platforms when needed
             try {
-                Thread.sleep(100); // Small delay to prevent too many updates
+                Thread.sleep(100); // small delay to prevent too many updates
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -74,7 +74,7 @@ public class Player extends Walker{
                 // Can be used for future jumps when i want to implement a double jump
             }
         });
-        setGravityScale(1f);
+        setGravityScale(1.5f);
 
 
     }
