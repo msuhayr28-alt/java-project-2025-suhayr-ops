@@ -20,8 +20,14 @@ public class Projectile extends DynamicBody implements CollisionListener {
 
     @Override
     public void collide(CollisionEvent e) {
-        if (!(e.getOtherBody() instanceof Enemy)) {
-            destroy();
+        if (e.getOtherBody() instanceof Player) {
+            Player player = (Player) e.getOtherBody();
+            player.decreaseHealth(); // reduce player health
+
+            destroy(); // removes the projectile after collision
+        }else if(!(e.getOtherBody() instanceof Enemy)){
+            destroy(); // destroys on impact with anything other than an enemy
+
         }
     }
 }

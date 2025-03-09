@@ -31,7 +31,7 @@ public class Player extends Walker{
     private boolean isMoving = false;
     private boolean facingRight = true;
     private Timer animationTimer;// Timer for walking animation
-
+    private int health = 3;
     private AttachedImage currentImage;
 
 
@@ -125,5 +125,19 @@ public class Player extends Walker{
     private void setIdleImage(){
         this.removeAttachedImage(currentImage);
         currentImage = new AttachedImage(this, facingRight ? idleRightImage : idleLeftImage, 1, 0, new Vec2(0, 0));
+    }
+
+    public void decreaseHealth() {
+        health--; // reduces health by 1
+        System.out.println("Player hit! Health remaining: " + health);
+
+        if (health <= 0) {
+            gameOver();
+        }
+    }
+
+    private void gameOver() {
+        System.out.println("Game Over! Player has lost all lives.");
+        getWorld().stop(); // stops the game
     }
 }
