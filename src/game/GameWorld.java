@@ -6,12 +6,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameWorld extends World {
+
     private final Player player;
     private float lastPlatformY = -7; // Track the highest platform generated
     private List<StaticBody> platforms = new ArrayList<>(); // Store platforms
 
-    private List<StaticBody> movingPlatforms = new ArrayList<>();
-    private List<Float> platformSpeeds = new ArrayList<>();
+    private final List<StaticBody> movingPlatforms = new ArrayList<>();
+    private final List<Float> platformSpeeds = new ArrayList<>();
+    private boolean enemyWantsToShoot = false; // Ensures projectiles spawn at correct times
+
 
 
     public GameWorld() {
@@ -59,7 +62,7 @@ public class GameWorld extends World {
         SolidFixture rightWallFixture = new SolidFixture(rightWall, rightWallShape);
         rightWallFixture.setFriction(0);
     }
-    private List<Enemy> enemies = new ArrayList<>(); // stores enemies
+    private final List<Enemy> enemies = new ArrayList<>(); // stores enemies
 
     private void addPlatform(float x, float y, boolean isMoving){
         Shape Platform = new BoxShape(2f, 0.75f);
@@ -124,20 +127,39 @@ public class GameWorld extends World {
 
         }
     }
+    public void makeEnemiesShoot() {
+        for (Enemy enemy : enemies) {
+            enemy.shootProjectile();
+        }
+    }
+
     private void startUpdateLoop() {
         this.addStepListener(new StepListener() {
+            private int counter = 0;
+
             @Override
             public void preStep(StepEvent e) {
                 updatePlatform();
                 updateMovingPlatforms();
+
+                counter++;
+
+                if (counter % 180 == 0) { // Every 120 steps (~2 seconds)
+                    makeEnemiesShoot();
+                }
             }
 
             @Override
             public void postStep(StepEvent e) {
-                // this is not needed right now
+                // Not needed right now
             }
         });
     }
+
+    public void requestEnemyShoot() {
+        enemyWantsToShoot = true;
+    }
+
 
     public Player getPlayer() {
         return player;

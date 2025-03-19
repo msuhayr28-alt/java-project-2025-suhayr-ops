@@ -30,7 +30,6 @@ public class Enemy extends StaticBody {
         setPosition(position);
         currentImage = addImage(sprites[spriteIndex]); // Initial sprite
         startAnimation();
-        startShooting();
 
     }
 
@@ -49,26 +48,17 @@ public class Enemy extends StaticBody {
                     }
                 }, 0, 250); // change sprite every 250ms
     }
-    private void startShooting() {
-        new Timer().scheduleAtFixedRate(
-                new TimerTask() {
-                    @Override
-                    public void run() {
-                        shootProjectile();
-                    }
-                }, 1000, 3000); // fires shot every 3 seconds
-    }
 
-    private void shootProjectile() {
-        if (player == null) return;
+    void shootProjectile() {
+        if (player == null || this.getWorld() == null) return;
 
         Vec2 enemyPos = getPosition();
         Vec2 playerPos = player.getPosition();
         Vec2 direction = playerPos.sub(enemyPos);
         direction.normalize();
-        direction.mulLocal(15f);
+        direction.mulLocal(15f); // speed of projectile
 
-        // makes it look like shot is coming out of enemies mouth
-        new Projectile(world, enemyPos.add(new Vec2(1, 1)), direction);
+        //  makes it look like shot is coming out of enemies mouth
+        new Projectile(this.getWorld(), enemyPos.add(new Vec2(1, 1)), direction);
     }
 }
