@@ -31,12 +31,14 @@ public class Player extends Walker{
     private boolean isMoving = false;
     private boolean facingRight = true;
     private Timer animationTimer;// Timer for walking animation
-    private int health = 3;
+    private int health = 4;
     private AttachedImage currentImage;
+    private Game game;
 
 
-    public Player(World world) {
+    public Player(World world, Game game) {
         super(world);
+        this.game = game;
 
         // character was not convex, so I had to create two convex shapes and attach them to each other
         Shape shape1 = new PolygonShape(-0.92f, 1.31f, -0.45f, 2.02f, 0.32f, 2.0f, 0.82f, 1.42f, 0.83f, 0.9f, 0.4f, 0.58f, -0.56f, 0.59f, -0.92f, 1.3f
@@ -128,11 +130,15 @@ public class Player extends Walker{
     }
 
     public void decreaseHealth() {
-        health--; // reduces health by 1
+
         System.out.println("Player hit! Health remaining: " + health);
 
-        if (health <= 0) {
+        if (health <= 1) {
             gameOver();
+        }
+        if (health > 0){
+            health--;
+            game.updateHealthDisplay(health);
         }
     }
 
@@ -140,4 +146,10 @@ public class Player extends Walker{
         System.out.println("Game Over! Player has lost all lives.");
         getWorld().stop(); // stops the game
     }
+
+    public int getHealth (){
+        return health;
+    }
+
+
 }

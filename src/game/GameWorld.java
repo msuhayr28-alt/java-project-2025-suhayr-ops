@@ -10,6 +10,7 @@ public class GameWorld extends World {
     private final Player player;
     private float lastPlatformY = -7; // Track the highest platform generated
     private List<StaticBody> platforms = new ArrayList<>(); // Store platforms
+    private Game game;
 
     private final List<StaticBody> movingPlatforms = new ArrayList<>();
     private final List<Float> platformSpeeds = new ArrayList<>();
@@ -17,10 +18,11 @@ public class GameWorld extends World {
 
 
 
-    public GameWorld() {
+    public GameWorld(Game game) {
         super();
+        this.game = game;
         //creates the player
-        player = new Player(this);
+        player = new Player(this, game);
         player.setPosition(new Vec2(0, -7));
 
         //first platform
@@ -77,7 +79,7 @@ public class GameWorld extends World {
         }else{
             platforms.add(platform);
         }
-        if (Math.random() < 0.2) {
+        if (Math.random() < 0.1) {
             generateEnemyPlatform(x, y);
         }
 
@@ -112,6 +114,11 @@ public class GameWorld extends World {
     public void updateMovingPlatforms(){
         for (int i = 0; i < movingPlatforms.size(); i++) {
             StaticBody platform = movingPlatforms.get(i);
+
+            if (platform == null || platform.getWorld() == null) {
+                continue; // Skip this platform
+            }
+
             float speed = platformSpeeds.get(i);
 
             Vec2 pos = platform.getPosition();
