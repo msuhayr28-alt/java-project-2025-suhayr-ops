@@ -43,7 +43,7 @@ public class Game {
         frame.add(view, BorderLayout.CENTER);
 
         healthLabel = new JLabel(new ImageIcon("data/health4.png"));
-        healthLabel.setBounds(460,5 , 40, 40); // Position at bottom-left
+        healthLabel.setBounds(460,5 , 45, 45); // Position at bottom-left
         view.add(healthLabel);
 
 
