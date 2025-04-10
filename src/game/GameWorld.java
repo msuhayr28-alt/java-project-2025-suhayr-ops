@@ -79,7 +79,7 @@ public class GameWorld extends World {
         }else{
             platforms.add(platform);
         }
-        if (Math.random() < 0.1) {
+        if (Math.random() < 0.2) {
             generateEnemyPlatform(x, y);
         }
 

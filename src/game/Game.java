@@ -5,21 +5,22 @@ import city.cs.engine.*;
 import javax.swing.*;
 import java.awt.*;
 
-
-
 /**
  * Your main game entry point
  */
 public class Game {
 
     private JLabel healthLabel;
+    private JFrame frame;
+    private GameWorld game;
+
 
     /** Initialise a new Game. */
     public Game() {
 
 
         // make an empty game world
-        GameWorld game = new GameWorld(this);
+        game = new GameWorld(this);
         Player player = game.getPlayer();
 
         // make a view to look into the game world
@@ -38,7 +39,7 @@ public class Game {
 
         // create a Java window (frame) and add the game
         // and view it
-        final JFrame frame = new JFrame("Robo Run: Factory Escape");
+        frame = new JFrame("Robo Run: Factory Escape");
         frame.setLayout(new BorderLayout());
         frame.add(view, BorderLayout.CENTER);
 
@@ -60,7 +61,7 @@ public class Game {
         frame.setVisible(true);
 
         //optional: uncomment this to make a debugging view
-        JFrame debugView = new DebugViewer(game, 500, 500);
+        //JFrame debugView = new DebugViewer(game, 500, 500);
 
         // start our game world simulation!
         game.start();
@@ -79,8 +80,58 @@ public class Game {
 
     public void updateHealthDisplay(int health){
         healthLabel.setIcon(new ImageIcon("data/health" + health + ".png"));
-        healthLabel.repaint(); // Ensures the change is visible
+        healthLabel.repaint(); // makes the icon change visible
 
+    }
+
+    public void gameOver() {
+        System.out.println("Game Over!");
+
+        // Stop the game
+        game.stop();
+
+        // Create a transparent panel over the game view
+        JPanel overlay = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                // Draw translucent background
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setColor(new Color(0, 0, 0, 150)); // black with alpha 150
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+                g2d.dispose();
+            }
+        };
+        overlay.setLayout(new BoxLayout(overlay, BoxLayout.Y_AXIS));
+        overlay.setOpaque(false);
+        overlay.setBounds(0, 0, 500, 500); // match game view size
+        overlay.setFocusable(false);
+
+        // Add Game Over image
+        ImageIcon gameOverIcon = new ImageIcon("data/gameover.png");
+        Image scaledImage = gameOverIcon.getImage().getScaledInstance(300, 200, Image.SCALE_SMOOTH);
+        JLabel gameOverLabel = new JLabel(new ImageIcon(scaledImage));
+        gameOverLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        overlay.add(Box.createVerticalGlue());
+        overlay.add(gameOverLabel);
+
+        // Add restart button
+        JButton restartButton = new JButton("Restart");
+        restartButton.setAlignmentX(Component.CENTER_ALIGNMENT);
+        restartButton.addActionListener(e -> restartGame());
+        overlay.add(Box.createRigidArea(new Dimension(0, 20)));
+        overlay.add(restartButton);
+        overlay.add(Box.createVerticalGlue());
+
+        // Add overlay to the view
+        frame.getLayeredPane().add(overlay, JLayeredPane.POPUP_LAYER);
+        frame.revalidate();
+        frame.repaint();
+    }
+
+    private void restartGame() {
+        frame.dispose(); // Close the current game window
+        new Game(); // Start a new game
     }
 
 

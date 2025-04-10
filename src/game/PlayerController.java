@@ -17,19 +17,13 @@ public class PlayerController implements KeyListener {
         int key = e.getKeyCode();
         if(key == KeyEvent.VK_LEFT){
             player.startWalking(-WALK_FORCE);
-            System.out.println("Moving Left");
-
         }
         else if(key == KeyEvent.VK_RIGHT){
             player.startWalking(WALK_FORCE);
-            System.out.println("Moving Right");
-
         }
         else if(key ==KeyEvent.VK_UP || key == KeyEvent.VK_SPACE){
             if(player.getLinearVelocity().y < 6f){
                 player.jump(JUMP_FORCE);
-                System.out.println("Jumping");
-
             }
         }
     }

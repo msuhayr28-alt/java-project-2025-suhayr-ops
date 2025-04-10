@@ -3,8 +3,10 @@ import city.cs.engine.*;
 
 import javax.swing.*;
 
+import city.cs.engine.Shape;
 import org.jbox2d.common.Vec2;
 
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -131,9 +133,8 @@ public class Player extends Walker{
 
     public void decreaseHealth() {
 
-        System.out.println("Player hit! Health remaining: " + health);
-
         if (health <= 1) {
+
             gameOver();
         }
         if (health > 0){
@@ -143,13 +144,10 @@ public class Player extends Walker{
     }
 
     private void gameOver() {
-        System.out.println("Game Over! Player has lost all lives.");
-        getWorld().stop(); // stops the game
-    }
 
-    public int getHealth (){
-        return health;
-    }
+        game.gameOver();
 
+
+    }
 
 }
