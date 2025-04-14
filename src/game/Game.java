@@ -73,15 +73,14 @@ public class Game {
         // start our game world simulation!
         game.start();
 
-        // game Loop to Update Platforms
-        while (true) {
-            game.updatePlatform(); // add more platforms when needed
-            try {
-                Thread.sleep(100); // small delay to prevent too many updates
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        Timer gameTimer = new Timer(100, e -> {
+            game.updatePlatform();
+
+        });
+        gameTimer.start();
+
+
+
 
 
 
@@ -94,8 +93,16 @@ public class Game {
     }
 
     public void gameOver() {
-        System.out.println("Game Over!");
 
+        endScreen("data/gameover.png");
+
+    }
+    public void gameWon() {
+
+        endScreen("data/youWin.png");
+    }
+
+    private void endScreen(String imagePath){
         // Stop the game
         game.stop();
 
@@ -117,12 +124,12 @@ public class Game {
         overlay.setFocusable(false);
 
         // Add Game Over image
-        ImageIcon gameOverIcon = new ImageIcon("data/gameover.png");
-        Image scaledImage = gameOverIcon.getImage().getScaledInstance(300, 200, Image.SCALE_SMOOTH);
-        JLabel gameOverLabel = new JLabel(new ImageIcon(scaledImage));
-        gameOverLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        ImageIcon icon = new ImageIcon(imagePath);
+        Image scaledImage = icon.getImage().getScaledInstance(300, 200, Image.SCALE_SMOOTH);
+        JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
+        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         overlay.add(Box.createVerticalGlue());
-        overlay.add(gameOverLabel);
+        overlay.add(imageLabel);
 
         // Add restart button
         JButton restartButton = new JButton("Restart");
@@ -137,6 +144,7 @@ public class Game {
         frame.revalidate();
         frame.repaint();
     }
+
 
     private void restartGame() {
         frame.dispose(); // Close the current game window

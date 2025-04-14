@@ -18,7 +18,7 @@ public class GameWorld extends World {
 
     private float lastStarSpawnY = -10;
     private final float SPAWN_INTERVAL = 15f;
-    private final float STAR_PROBABILITY = 0.25f;
+    private final float STAR_PROBABILITY = 0.99f;
 
 
 

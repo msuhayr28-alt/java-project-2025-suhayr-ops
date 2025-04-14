@@ -39,6 +39,4 @@ public class PlayerController implements KeyListener {
     public void keyTyped(KeyEvent e){
 
     }
-
-
 }
