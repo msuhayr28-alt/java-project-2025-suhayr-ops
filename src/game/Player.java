@@ -36,6 +36,8 @@ public class Player extends Walker{
     private int health = 4;
     private AttachedImage currentImage;
     private Game game;
+    private int starsCollected = 0;
+
 
 
     public Player(World world, Game game) {
@@ -79,6 +81,24 @@ public class Player extends Walker{
             }
         });
         setGravityScale(1.5f);
+
+        this.addCollisionListener(new CollisionListener() {
+            @Override
+            public void collide(CollisionEvent e) {
+                if (e.getOtherBody() instanceof Star) {
+                    e.getOtherBody().destroy();
+                    starsCollected++;
+
+                    // Optional: update UI
+                    game.updateScoreDisplay(starsCollected);
+
+                    // Check if enough stars have been collected
+                    if (starsCollected >= 5) {
+                        game.gameOver();
+                    }
+                }
+            }
+        });
 
 
     }

@@ -16,6 +16,10 @@ public class GameWorld extends World {
     private final List<Float> platformSpeeds = new ArrayList<>();
     private boolean enemyWantsToShoot = false; // Ensures projectiles spawn at correct times
 
+    private float lastStarSpawnY = -10;
+    private final float SPAWN_INTERVAL = 15f;
+    private final float STAR_PROBABILITY = 0.25f;
+
 
 
     public GameWorld(Game game) {
@@ -92,6 +96,15 @@ public class GameWorld extends World {
         if(playerY > lastPlatformY - 5){
             generatePlatform();
         }
+
+        if (playerY > lastStarSpawnY + SPAWN_INTERVAL) {
+            lastStarSpawnY = playerY;
+
+            if (Math.random() < STAR_PROBABILITY) {
+                spawnStarAt(new Vec2(-10 + (float)(Math.random() * 20), playerY + 3));
+            }
+        }
+
     }
 
     private void generatePlatform(){
@@ -171,6 +184,16 @@ public class GameWorld extends World {
     public Player getPlayer() {
         return player;
     }
+
+
+
+
+    private void spawnStarAt(Vec2 position) {
+        Star star = new Star(this);
+        star.setPosition(position);
+    }
+
+
 
 
 }

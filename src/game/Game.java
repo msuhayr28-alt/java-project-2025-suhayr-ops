@@ -13,6 +13,8 @@ public class Game {
     private JLabel healthLabel;
     private JFrame frame;
     private GameWorld game;
+    private JLabel scoreLabel;
+
 
 
     /** Initialise a new Game. */
@@ -63,6 +65,11 @@ public class Game {
         //optional: uncomment this to make a debugging view
         //JFrame debugView = new DebugViewer(game, 500, 500);
 
+        scoreLabel = new JLabel("Stars: 0");
+        scoreLabel.setForeground(Color.WHITE);
+        scoreLabel.setBounds(10, 40, 100, 20);
+        view.add(scoreLabel);
+
         // start our game world simulation!
         game.start();
 
@@ -75,6 +82,8 @@ public class Game {
                 e.printStackTrace();
             }
         }
+
+
 
     }
 
@@ -134,7 +143,10 @@ public class Game {
         new Game(); // Start a new game
     }
 
+    public void updateScoreDisplay(int score) {
+        scoreLabel.setText("Stars: " + score);
 
+    }
 
     /** Run the game. */
     public static void main(String[] args) {
