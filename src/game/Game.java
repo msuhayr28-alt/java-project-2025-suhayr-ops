@@ -1,10 +1,14 @@
 package game;
 
 import city.cs.engine.*;
+import org.jbox2d.collision.Collision;
 
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
-
+import java.io.File;
 /**
  * Your main game entry point
  */
@@ -14,6 +18,7 @@ public class Game {
     private JFrame frame;
     private GameWorld game;
     private JLabel scoreLabel;
+    private Clip backgroundClip;
 
 
 
@@ -62,6 +67,9 @@ public class Game {
         // finally, make the frame visible
         frame.setVisible(true);
 
+        playBackgroundMusic();
+
+
         //optional: uncomment this to make a debugging view
         //JFrame debugView = new DebugViewer(game, 500, 500);
 
@@ -78,12 +86,17 @@ public class Game {
 
         });
         gameTimer.start();
+    }
 
-
-
-
-
-
+    public void playBackgroundMusic(){
+        try {
+            AudioInputStream audioIn = AudioSystem.getAudioInputStream(new File("data/background.wav"));
+            backgroundClip = AudioSystem.getClip();
+            backgroundClip.open(audioIn);
+            backgroundClip.loop(Clip.LOOP_CONTINUOUSLY); // Loops forever
+        } catch (Exception e) {
+            System.out.println("Error playing background music: " + e.getMessage());
+        }
     }
 
     public void updateHealthDisplay(int health){
@@ -143,6 +156,11 @@ public class Game {
         frame.getLayeredPane().add(overlay, JLayeredPane.POPUP_LAYER);
         frame.revalidate();
         frame.repaint();
+
+        if (backgroundClip != null && backgroundClip.isRunning()) {
+            backgroundClip.stop();
+        }
+
     }
 
 
