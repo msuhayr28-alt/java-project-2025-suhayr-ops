@@ -88,6 +88,7 @@ public class Player extends Walker{
                 if (e.getOtherBody() instanceof Star) {
                     e.getOtherBody().destroy();
                     starsCollected++;
+                    Sound.playSound("data/point.wav");
 
                     // Optional: update UI
                     game.updateScoreDisplay(starsCollected);
@@ -160,6 +161,7 @@ public class Player extends Walker{
         if (health > 0){
             health--;
             game.updateHealthDisplay(health);
+            Sound.playSound("data/hit.wav");
         }
     }
 

@@ -67,7 +67,7 @@ public class Game {
         // finally, make the frame visible
         frame.setVisible(true);
 
-        playBackgroundMusic();
+        Sound.playBackgroundMusic("data/background.wav");
 
 
         //optional: uncomment this to make a debugging view
@@ -88,16 +88,7 @@ public class Game {
         gameTimer.start();
     }
 
-    public void playBackgroundMusic(){
-        try {
-            AudioInputStream audioIn = AudioSystem.getAudioInputStream(new File("data/background.wav"));
-            backgroundClip = AudioSystem.getClip();
-            backgroundClip.open(audioIn);
-            backgroundClip.loop(Clip.LOOP_CONTINUOUSLY); // Loops forever
-        } catch (Exception e) {
-            System.out.println("Error playing background music: " + e.getMessage());
-        }
-    }
+
 
     public void updateHealthDisplay(int health){
         healthLabel.setIcon(new ImageIcon("data/health" + health + ".png"));
@@ -118,6 +109,7 @@ public class Game {
     private void endScreen(String imagePath){
         // Stop the game
         game.stop();
+        Sound.stopBackgroundMusic();
 
         // Create a transparent panel over the game view
         JPanel overlay = new JPanel() {
