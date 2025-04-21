@@ -8,6 +8,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyListener;
 import java.io.File;
 /**
  * Your main game entry point
@@ -19,19 +20,22 @@ public class Game {
     private GameWorld game;
     private JLabel scoreLabel;
     private Clip backgroundClip;
+    private GameView view;
+    private int currentLevel = 1;
+
+
 
 
 
     /** Initialise a new Game. */
     public Game() {
 
+        game = new GameWorld(this, "data/ground.png", "data/ground.png");
 
-        // make an empty game world
-        game = new GameWorld(this);
         Player player = game.getPlayer();
 
         // make a view to look into the game world
-        GameView view = new GameView(game, 500, 500, player);
+        view = new GameView(game, 500, 500, player, "data/background1.png");
         view.setLayout(null);
 
 
@@ -87,6 +91,60 @@ public class Game {
         });
         gameTimer.start();
     }
+
+    /*public void goToLevel2() {
+        Level2 level2 = new Level2();  // Create an instance of Level2
+
+        // Now we call the createWorld method on level2 and pass the parameters
+        game = new GameWorld(this,
+                level2.getPlatformImage(),
+                level2.getGroundImage()
+        );
+
+        view.setWorld(game);
+        view.setBackgroundImage(level2.getBackgroundImage());  // Change background
+        view.setPlayer(game.getPlayer());
+        // Additional game setup logic if needed
+    }*/
+
+    public void goToNextLevel() {
+        currentLevel++;
+        if (game != null) {
+            game.stop(); // Stop physics + timers in current world
+        }
+
+        if (currentLevel == 2) {
+            Level2 level2 = new Level2();
+            game = new GameWorld(this, level2.getPlatformImage(), level2.getGroundImage());
+            view.setWorld(game);
+            view.setBackgroundImage(level2.getBackgroundImage());
+            view.setPlayer(game.getPlayer());
+            game.start();
+        } /*else if (currentLevel == 3) {
+            Level3 level3 = new Level3(); // You’d need to create this class like Level2
+            game = new GameWorld(this, level3.getPlatformImage(), level3.getGroundImage());
+            view.setWorld(game);
+            view.setBackgroundImage(level3.getBackgroundImage());
+            view.setPlayer(game.getPlayer());
+            game.start();*/
+        else {
+            gameWon(); // Show win screen after final level
+        }
+
+        Player newPlayer = game.getPlayer();
+        view.setPlayer(newPlayer);
+
+        // Reset key listener
+        for (KeyListener kl : view.getKeyListeners()) {
+            view.removeKeyListener(kl);
+        }
+        view.addKeyListener(new PlayerController(newPlayer));
+
+        view.requestFocusInWindow();
+
+
+    }
+
 
 
 

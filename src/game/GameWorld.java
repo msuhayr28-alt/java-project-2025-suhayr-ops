@@ -10,11 +10,14 @@ public class GameWorld extends World {
     private final Player player;
     private float lastPlatformY = -7; // Track the highest platform generated
     private List<StaticBody> platforms = new ArrayList<>(); // Store platforms
+    private String platformImagePath = "data/ground.png"; // default
+    private String groundImagePath = "data/ground.png"; // default ground
+    private float platformImageScale = 1.6f;
+
     private Game game;
 
     private final List<StaticBody> movingPlatforms = new ArrayList<>();
     private final List<Float> platformSpeeds = new ArrayList<>();
-    private boolean enemyWantsToShoot = false; // Ensures projectiles spawn at correct times
 
     private float lastStarSpawnY = -10;
     private final float SPAWN_INTERVAL = 15f;
@@ -22,38 +25,43 @@ public class GameWorld extends World {
 
 
 
-    public GameWorld(Game game) {
+    public GameWorld(Game game, String platformImg, String groundImg) {
         super();
         this.game = game;
+        this.platformImagePath = platformImg;
+        this.groundImagePath = groundImg;
+
+
         //creates the player
         player = new Player(this, game);
         player.setPosition(new Vec2(0, -7));
 
         //first platform
-        Shape Platform = new BoxShape(2f , 0.75f);
-        StaticBody platform = new StaticBody(this, Platform);
+        Shape platformShape = new BoxShape(2f , 0.75f);
+        StaticBody platform = new StaticBody(this, platformShape);
         platform.setPosition(new Vec2(5, -7));
-        platform.addImage(new BodyImage("data/ground.png", 1.6f));
+        platform.addImage(new BodyImage(platformImagePath, platformImageScale));
+
 
         createWalls();
         createGround();
         startUpdateLoop();
     }
 
-    private void createGround(){
+    private void createGround() {
         float groundWidth = 2f;
         int numOfPlatforms = 13;
 
-        //the image im using for the floor is too small to fit the width of the screen
-        //so the loop displays the image at regular intervals
-        for(int i = 0; i <numOfPlatforms; i++) {
+        for (int i = 0; i < numOfPlatforms; i++) {
             Shape groundShape = new BoxShape(groundWidth / 2, 0.5f);
             StaticBody ground = new StaticBody(this, groundShape);
-            //starting position for the first platform
-            ground.setPosition(new Vec2(-11 + (i *groundWidth), -12));
-            ground.addImage(new BodyImage("data/ground.png", 2));
+            ground.setPosition(new Vec2(-11 + (i * groundWidth), -12));
+            ground.addImage(new BodyImage(groundImagePath, 2));
         }
     }
+
+
+
     private void createWalls(){
         //created left wall so player doesn't fall of
         Shape leftWallShape = new BoxShape(0.5f, 1000f);
@@ -70,26 +78,26 @@ public class GameWorld extends World {
     }
     private final List<Enemy> enemies = new ArrayList<>(); // stores enemies
 
-    private void addPlatform(float x, float y, boolean isMoving){
-        Shape Platform = new BoxShape(2f, 0.75f);
-        StaticBody platform = new StaticBody(this, Platform);
+    private void addPlatform(float x, float y, boolean isMoving, String imagePath, float imageScale) {
+        Shape shape = new BoxShape(2f, 0.75f);
+        StaticBody platform = new StaticBody(this, shape);
         platform.setPosition(new Vec2(x, y));
-        platform.addImage(new BodyImage("data/ground.png", 1.6f));
+        platform.addImage(new BodyImage(imagePath, imageScale));
 
-
-        if(isMoving) {
+        if (isMoving) {
             movingPlatforms.add(platform);
-            platformSpeeds.add(0.05f);
-        }else{
+            platformSpeeds.add(0.05f); // You can also make speed a param if you want
+        } else {
             platforms.add(platform);
         }
+
         if (Math.random() < 0.2) {
             generateEnemyPlatform(x, y);
         }
 
-        lastPlatformY= y;
-
+        lastPlatformY = y;
     }
+
 
     public void updatePlatform(){
         float playerY= player.getPosition().y;
@@ -107,17 +115,19 @@ public class GameWorld extends World {
 
     }
 
-    private void generatePlatform(){
-        for(int i = 0; i < 5; i++){
-            double Random = Math.random() * 2;
-            float x = (float) (Random * 10 - 10);
+    private void generatePlatform() {
+        for (int i = 0; i < 5; i++) {
+            float x = (float) (Math.random() * 20 - 10);
             float y = lastPlatformY + 5 + (float) (Math.random() * 3);
-
             boolean isMoving = Math.random() < 0.3;
-            addPlatform(x, y, isMoving);
 
+            String platformImage = platformImagePath;
+            float imageScale = 1.6f;
+
+            addPlatform(x, y, isMoving, platformImage, imageScale);
         }
     }
+
 
     private void generateEnemyPlatform(float x, float y){
         Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player); // adjusts height so it sits on platform
@@ -176,9 +186,7 @@ public class GameWorld extends World {
         });
     }
 
-    public void requestEnemyShoot() {
-        enemyWantsToShoot = true;
-    }
+
 
 
     public Player getPlayer() {
