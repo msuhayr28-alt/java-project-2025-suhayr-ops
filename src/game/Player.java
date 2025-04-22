@@ -94,7 +94,7 @@ public class Player extends Walker{
                     game.updateScoreDisplay(starsCollected);
 
                     // Check if enough stars have been collected
-                    if (starsCollected >= 5) {
+                    if (starsCollected >= 1) {
                         game.goToNextLevel();
                     }
                 }

@@ -6,11 +6,11 @@ import org.jbox2d.common.Vec2;
 public class Projectile extends DynamicBody implements CollisionListener {
 
     private static final Shape projectileShape = new CircleShape(0.4f);
-    private static final BodyImage projectileImage = new BodyImage("data/shot.png", 0.8f);
+    //private static final BodyImage projectileImage = new BodyImage("data/shot.png", 0.8f);
 
-    public Projectile(World world, Vec2 position, Vec2 velocity) {
+    public Projectile(World world, Vec2 position, Vec2 velocity, String imagePath) {
         super(world, projectileShape);
-        addImage(projectileImage);
+        addImage(new BodyImage(imagePath, 0.95f));
         setPosition(position);
         setLinearVelocity(velocity); // applies the initial velocity
 

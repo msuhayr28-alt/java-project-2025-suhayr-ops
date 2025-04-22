@@ -13,6 +13,7 @@ public class GameWorld extends World {
     private String platformImagePath = "data/ground.png"; // default
     private String groundImagePath = "data/ground.png"; // default ground
     private float platformImageScale = 1.6f;
+    private boolean isLevel2;
 
     private Game game;
 
@@ -21,15 +22,16 @@ public class GameWorld extends World {
 
     private float lastStarSpawnY = -10;
     private final float SPAWN_INTERVAL = 15f;
-    private final float STAR_PROBABILITY = 0.4f;
+    private final float STAR_PROBABILITY = 0.99f;
 
 
 
-    public GameWorld(Game game, String platformImg, String groundImg) {
+    public GameWorld(Game game, String platformImg, String groundImg, boolean isLevel2) {
         super();
         this.game = game;
         this.platformImagePath = platformImg;
         this.groundImagePath = groundImg;
+        this.isLevel2 = isLevel2;
 
 
         //creates the player
@@ -84,6 +86,14 @@ public class GameWorld extends World {
         platform.setPosition(new Vec2(x, y));
         platform.addImage(new BodyImage(imagePath, imageScale));
 
+        if (isLevel2) {
+            // Add snow overlay only in Level 2
+            BodyImage snowImage = new BodyImage("data/snow_overlay.png", imageScale);
+            new AttachedImage(platform, snowImage, 1, 0, new Vec2(0, 1f));
+        }
+
+
+
         if (isMoving) {
             movingPlatforms.add(platform);
             platformSpeeds.add(0.05f); // You can also make speed a param if you want
@@ -130,8 +140,12 @@ public class GameWorld extends World {
 
 
     private void generateEnemyPlatform(float x, float y){
-        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player); // adjusts height so it sits on platform
+        boolean isLevel2 = platformImagePath.contains("ice"); // or pass in explicitly
+
+        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player, isLevel2);
         enemies.add(enemy);
+
+
     }
 
     public void updateMovingPlatforms(){

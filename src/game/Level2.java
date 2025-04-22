@@ -12,7 +12,7 @@ public class Level2 {
 
     public Level2() {
         // Set the image paths specific to level 2
-        this.backgroundImage = "data/background2.png";
+        this.backgroundImage = "data/background-2.png";
         this.platformImage = "data/ice_platform.png";
         this.groundImage = "data/ice_platform.png";
 
@@ -32,9 +32,4 @@ public class Level2 {
         return groundImage;
     }
 
-
-    // Create and return the GameWorld
-    public GameWorld createWorld(Game game) {
-        return new GameWorld(game, platformImage, groundImage);
-    }
 }

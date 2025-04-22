@@ -2,6 +2,7 @@ package game;
 
 import city.cs.engine.*;
 import org.jbox2d.collision.Collision;
+import org.jbox2d.common.Vec2;
 
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -30,7 +31,7 @@ public class Game {
     /** Initialise a new Game. */
     public Game() {
 
-        game = new GameWorld(this, "data/ground.png", "data/ground.png");
+        game = new GameWorld(this, "data/ground.png", "data/ground.png", false);
 
         Player player = game.getPlayer();
 
@@ -92,21 +93,6 @@ public class Game {
         gameTimer.start();
     }
 
-    /*public void goToLevel2() {
-        Level2 level2 = new Level2();  // Create an instance of Level2
-
-        // Now we call the createWorld method on level2 and pass the parameters
-        game = new GameWorld(this,
-                level2.getPlatformImage(),
-                level2.getGroundImage()
-        );
-
-        view.setWorld(game);
-        view.setBackgroundImage(level2.getBackgroundImage());  // Change background
-        view.setPlayer(game.getPlayer());
-        // Additional game setup logic if needed
-    }*/
-
     public void goToNextLevel() {
         currentLevel++;
         if (game != null) {
@@ -115,7 +101,8 @@ public class Game {
 
         if (currentLevel == 2) {
             Level2 level2 = new Level2();
-            game = new GameWorld(this, level2.getPlatformImage(), level2.getGroundImage());
+            game = new GameWorld(this, level2.getPlatformImage(), level2.getGroundImage(), true);
+
             view.setWorld(game);
             view.setBackgroundImage(level2.getBackgroundImage());
             view.setPlayer(game.getPlayer());
