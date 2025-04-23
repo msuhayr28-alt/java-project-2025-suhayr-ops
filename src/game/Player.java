@@ -88,13 +88,19 @@ public class Player extends Walker{
                 if (e.getOtherBody() instanceof Star) {
                     e.getOtherBody().destroy();
                     starsCollected++;
+
                     Sound.playSound("data/point.wav");
 
                     // Optional: update UI
                     game.updateScoreDisplay(starsCollected);
 
-                    // Check if enough stars have been collected
                     if (starsCollected >= 1) {
+                        game.getWorld().enableFallingSpikes();  // 🔥 Add this method to GameWorld
+                    }
+
+
+                    // Check if enough stars have been collected
+                    if (starsCollected >= 5) {
                         game.goToNextLevel();
                     }
                 }
@@ -164,6 +170,15 @@ public class Player extends Walker{
             Sound.playSound("data/hit.wav");
         }
     }
+
+    public int getStarCount(){
+        return starsCollected;
+    }
+
+    public void resetStarCount() {
+        starsCollected = 0;
+    }
+
 
     private void gameOver() {
 

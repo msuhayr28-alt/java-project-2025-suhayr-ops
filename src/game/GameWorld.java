@@ -22,7 +22,19 @@ public class GameWorld extends World {
 
     private float lastStarSpawnY = -10;
     private final float SPAWN_INTERVAL = 15f;
-    private final float STAR_PROBABILITY = 0.99f;
+    private final float STAR_PROBABILITY = 0.9f;
+
+    private final String[] spikeImages = {
+            "data/spike1.png",
+            "data/spike2.png",
+            "data/spike3.png"
+    };
+
+    private boolean fallingSpikesEnabled = false;
+    private int spikeTimer = 0;
+    private int spikeInterval = 180; // Level-specific (e.g., 180 = every 3 seconds)
+
+
 
 
 
@@ -90,6 +102,12 @@ public class GameWorld extends World {
             // Add snow overlay only in Level 2
             BodyImage snowImage = new BodyImage("data/snow_overlay.png", imageScale);
             new AttachedImage(platform, snowImage, 1, 0, new Vec2(0, 1f));
+        }
+        if(isLevel2 && Math.random() < 0.3){
+            boolean isLeft = Math.random() < 0.5;
+            float spikeX = (float) (isLeft ? x-1.3 : x + 1.3);
+            Vec2 iceSpike = new Vec2(spikeX, y+1.5f);
+            new IceSpike(this, iceSpike);
         }
 
 
@@ -191,6 +209,13 @@ public class GameWorld extends World {
                 if (counter % 180 == 0) { // Every 120 steps (~2 seconds)
                     makeEnemiesShoot();
                 }
+                if (fallingSpikesEnabled) {
+                    spikeTimer++;
+                    if (spikeTimer >= spikeInterval) {
+                        spawnRandomFallingSpike();
+                        spikeTimer = 0;
+                    }
+                }
             }
 
             @Override
@@ -213,7 +238,26 @@ public class GameWorld extends World {
     private void spawnStarAt(Vec2 position) {
         Star star = new Star(this);
         star.setPosition(position);
+
     }
+
+    public void enableFallingSpikes() {
+        if (!fallingSpikesEnabled && isLevel2) {
+            fallingSpikesEnabled = true;
+            spikeInterval = 100;
+        }
+    }
+
+
+    private void spawnRandomFallingSpike() {
+        String randomImage = spikeImages[(int)(Math.random() * spikeImages.length)];
+        float x = -10 + (float)(Math.random() * 20); // anywhere across the screen
+        float y = player.getPosition().y + 15;       // above player
+
+        new FallingSpike(this, new Vec2(x, y), randomImage);
+    }
+
+
 
 
 

@@ -102,7 +102,6 @@ public class Game {
         if (currentLevel == 2) {
             Level2 level2 = new Level2();
             game = new GameWorld(this, level2.getPlatformImage(), level2.getGroundImage(), true);
-
             view.setWorld(game);
             view.setBackgroundImage(level2.getBackgroundImage());
             view.setPlayer(game.getPlayer());
@@ -128,6 +127,8 @@ public class Game {
         view.addKeyListener(new PlayerController(newPlayer));
 
         view.requestFocusInWindow();
+        game.getPlayer().resetStarCount(); // Add this method in Player
+
 
 
     }
@@ -210,9 +211,15 @@ public class Game {
         scoreLabel.setText("Stars: " + score);
 
     }
+    public GameWorld getWorld() {
+        return game;
+    }
+
 
     /** Run the game. */
     public static void main(String[] args) {
         new Game();
     }
+
+
 }
