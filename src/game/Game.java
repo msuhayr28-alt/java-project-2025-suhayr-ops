@@ -96,42 +96,37 @@ public class Game {
     public void goToNextLevel() {
         currentLevel++;
         if (game != null) {
-            game.stop(); // Stop physics + timers in current world
+            game.stop();
         }
 
         if (currentLevel == 2) {
+            // Use the Level2 factory method to build the world,
+            // which also wires in the patrol‐enemy spawn after 3 stars:
             Level2 level2 = new Level2();
-            game = new GameWorld(this, level2.getPlatformImage(), level2.getGroundImage(), true);
+            game = level2.createWorld(this);
+
+            // Now hook it into the view:
             view.setWorld(game);
             view.setBackgroundImage(level2.getBackgroundImage());
             view.setPlayer(game.getPlayer());
+
             game.start();
-        } /*else if (currentLevel == 3) {
-            Level3 level3 = new Level3(); // You’d need to create this class like Level2
-            game = new GameWorld(this, level3.getPlatformImage(), level3.getGroundImage());
-            view.setWorld(game);
-            view.setBackgroundImage(level3.getBackgroundImage());
-            view.setPlayer(game.getPlayer());
-            game.start();*/
+        }
         else {
-            gameWon(); // Show win screen after final level
+            gameWon();
         }
 
-        Player newPlayer = game.getPlayer();
-        view.setPlayer(newPlayer);
-
-        // Reset key listener
+        // Re-attach controls & reset star count on the new player
+        Player p = game.getPlayer();
+        view.setPlayer(p);
         for (KeyListener kl : view.getKeyListeners()) {
             view.removeKeyListener(kl);
         }
-        view.addKeyListener(new PlayerController(newPlayer));
-
+        view.addKeyListener(new PlayerController(p));
         view.requestFocusInWindow();
-        game.getPlayer().resetStarCount(); // Add this method in Player
-
-
-
+        p.resetStarCount();
     }
+
 
 
 

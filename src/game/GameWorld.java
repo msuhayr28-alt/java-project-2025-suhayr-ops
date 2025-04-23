@@ -1,265 +1,212 @@
 package game;
+
 import city.cs.engine.*;
 import org.jbox2d.common.Vec2;
 
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * A game world that handles platforms, enemies, stars, and falling spikes.
+ */
 public class GameWorld extends World {
 
     private final Player player;
-    private float lastPlatformY = -7; // Track the highest platform generated
-    private List<StaticBody> platforms = new ArrayList<>(); // Store platforms
-    private String platformImagePath = "data/ground.png"; // default
-    private String groundImagePath = "data/ground.png"; // default ground
-    private float platformImageScale = 1.6f;
-    private boolean isLevel2;
+    private final Game game;
 
-    private Game game;
-
+    // Platform generation
+    private float lastPlatformY = -7;
+    private final List<StaticBody> platforms = new ArrayList<>();
     private final List<StaticBody> movingPlatforms = new ArrayList<>();
     private final List<Float> platformSpeeds = new ArrayList<>();
+    private String platformImagePath;
+    private String groundImagePath;
+    private float platformImageScale;
+    private final boolean isLevel2;
 
+    // Star spawning
     private float lastStarSpawnY = -10;
-    private final float SPAWN_INTERVAL = 15f;
-    private final float STAR_PROBABILITY = 0.9f;
+    private static final float STAR_SPAWN_INTERVAL = 15f;
+    private static final float STAR_PROBABILITY = 0.9f;
 
-    private final String[] spikeImages = {
-            "data/spike1.png",
-            "data/spike2.png",
-            "data/spike3.png"
-    };
-
+    // Falling spikes
+    private static final String[] SPIKE_IMAGES = {"data/spike1.png", "data/spike2.png", "data/spike3.png"};
     private boolean fallingSpikesEnabled = false;
     private int spikeTimer = 0;
-    private int spikeInterval = 180; // Level-specific (e.g., 180 = every 3 seconds)
+    private int spikeInterval = 180;
 
-
-
-
+    // Enemies
+    private final List<Enemy> enemies = new ArrayList<>();
 
     public GameWorld(Game game, String platformImg, String groundImg, boolean isLevel2) {
         super();
         this.game = game;
         this.platformImagePath = platformImg;
         this.groundImagePath = groundImg;
+        this.platformImageScale = 1.6f;
         this.isLevel2 = isLevel2;
 
+        this.player = new Player(this, game);
+        this.player.setPosition(new Vec2(0, -7));
 
-        //creates the player
-        player = new Player(this, game);
-        player.setPosition(new Vec2(0, -7));
-
-        //first platform
-        Shape platformShape = new BoxShape(2f , 0.75f);
-        StaticBody platform = new StaticBody(this, platformShape);
-        platform.setPosition(new Vec2(5, -7));
-        platform.addImage(new BodyImage(platformImagePath, platformImageScale));
-
-
+        createInitialPlatform();
         createWalls();
         createGround();
         startUpdateLoop();
     }
 
-    private void createGround() {
-        float groundWidth = 2f;
-        int numOfPlatforms = 13;
+    private void createInitialPlatform() {
+        BoxShape shape = new BoxShape(2f, 0.75f);
+        StaticBody platform = new StaticBody(this, shape);
+        platform.setPosition(new Vec2(5, -7));
+        platform.addImage(new BodyImage(platformImagePath, platformImageScale));
+    }
 
-        for (int i = 0; i < numOfPlatforms; i++) {
-            Shape groundShape = new BoxShape(groundWidth / 2, 0.5f);
-            StaticBody ground = new StaticBody(this, groundShape);
-            ground.setPosition(new Vec2(-11 + (i * groundWidth), -12));
+    private void createGround() {
+        float tileWidth = 2f;
+        for (int i = 0; i < 13; i++) {
+            BoxShape shape = new BoxShape(tileWidth / 2, 0.5f);
+            StaticBody ground = new StaticBody(this, shape);
+            ground.setPosition(new Vec2(-11 + i * tileWidth, -12));
             ground.addImage(new BodyImage(groundImagePath, 2));
         }
     }
 
-
-
-    private void createWalls(){
-        //created left wall so player doesn't fall of
-        Shape leftWallShape = new BoxShape(0.5f, 1000f);
-        StaticBody leftWall = new StaticBody(this, leftWallShape);
-        leftWall.setPosition(new Vec2(-13, -2));
-        SolidFixture leftWallFixture = new SolidFixture(leftWall, leftWallShape);
-        leftWallFixture.setFriction(0);
-        //created right wall so player doesn't fall of
-        Shape rightWallShape = new BoxShape(0.5f, 1000f);
-        StaticBody rightWall = new StaticBody(this, rightWallShape);
-        rightWall.setPosition(new Vec2(13, -2));
-        SolidFixture rightWallFixture = new SolidFixture(rightWall, rightWallShape);
-        rightWallFixture.setFriction(0);
+    private void createWalls() {
+        createWall(-13);
+        createWall(13);
     }
-    private final List<Enemy> enemies = new ArrayList<>(); // stores enemies
 
-    private void addPlatform(float x, float y, boolean isMoving, String imagePath, float imageScale) {
-        Shape shape = new BoxShape(2f, 0.75f);
+    private void createWall(float x) {
+        BoxShape shape = new BoxShape(0.5f, 1000f);
+        StaticBody wall = new StaticBody(this, shape);
+        wall.setPosition(new Vec2(x, -2));
+        new SolidFixture(wall, shape).setFriction(0);
+    }
+
+    private void addPlatform(float x, float y, boolean moving) {
+        BoxShape shape = new BoxShape(2f, 0.75f);
         StaticBody platform = new StaticBody(this, shape);
         platform.setPosition(new Vec2(x, y));
-        platform.addImage(new BodyImage(imagePath, imageScale));
+        platform.addImage(new BodyImage(platformImagePath, platformImageScale));
+        SolidFixture fixture = new SolidFixture(platform, shape);
 
         if (isLevel2) {
-            // Add snow overlay only in Level 2
-            BodyImage snowImage = new BodyImage("data/snow_overlay.png", imageScale);
-            new AttachedImage(platform, snowImage, 1, 0, new Vec2(0, 1f));
-        }
-        if(isLevel2 && Math.random() < 0.3){
-            boolean isLeft = Math.random() < 0.5;
-            float spikeX = (float) (isLeft ? x-1.3 : x + 1.3);
-            Vec2 iceSpike = new Vec2(spikeX, y+1.5f);
-            new IceSpike(this, iceSpike);
+            if(Math.random() < 0.4f) {
+                addSnowOverlay(platform);
+                fixture.setFriction(1);
+
+            }
+            maybeSpawnStaticSpike(x, y);
         }
 
-
-
-        if (isMoving) {
+        if (moving) {
             movingPlatforms.add(platform);
-            platformSpeeds.add(0.05f); // You can also make speed a param if you want
+            platformSpeeds.add(0.05f);
         } else {
             platforms.add(platform);
         }
 
         if (Math.random() < 0.2) {
-            generateEnemyPlatform(x, y);
+            spawnEnemyOnPlatform(x, y);
         }
 
         lastPlatformY = y;
     }
 
-
-    public void updatePlatform(){
-        float playerY= player.getPosition().y;
-        if(playerY > lastPlatformY - 5){
-            generatePlatform();
-        }
-
-        if (playerY > lastStarSpawnY + SPAWN_INTERVAL) {
-            lastStarSpawnY = playerY;
-
-            if (Math.random() < STAR_PROBABILITY) {
-                spawnStarAt(new Vec2(-10 + (float)(Math.random() * 20), playerY + 3));
-            }
-        }
-
+    private void addSnowOverlay(StaticBody platform) {
+        BodyImage snow = new BodyImage("data/snow_overlay.png", platformImageScale);
+        new AttachedImage(platform, snow, 1, 0, new Vec2(0, 1f));
     }
 
-    private void generatePlatform() {
-        for (int i = 0; i < 5; i++) {
-            float x = (float) (Math.random() * 20 - 10);
-            float y = lastPlatformY + 5 + (float) (Math.random() * 3);
-            boolean isMoving = Math.random() < 0.3;
-
-            String platformImage = platformImagePath;
-            float imageScale = 1.6f;
-
-            addPlatform(x, y, isMoving, platformImage, imageScale);
+    private void maybeSpawnStaticSpike(float x, float y) {
+        if (Math.random() < 0.3) {
+            float offsetX = (Math.random() < 0.5) ? x - 1.3f : x + 1.3f;
+            Vec2 pos = new Vec2(offsetX, y + 1.5f);
+            new IceSpike(this, pos);
         }
     }
 
-
-    private void generateEnemyPlatform(float x, float y){
-        boolean isLevel2 = platformImagePath.contains("ice"); // or pass in explicitly
-
-        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player, isLevel2);
+    private void spawnEnemyOnPlatform(float x, float y) {
+        boolean lvl2 = platformImagePath.contains("ice");
+        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player, lvl2);
         enemies.add(enemy);
-
-
     }
 
-    public void updateMovingPlatforms(){
-        for (int i = 0; i < movingPlatforms.size(); i++) {
-            StaticBody platform = movingPlatforms.get(i);
+    public void updatePlatform() {
+        float py = player.getPosition().y;
+        if (py > lastPlatformY - 5) generatePlatforms(5);
 
-            if (platform == null || platform.getWorld() == null) {
-                continue; // Skip this platform
+        if (py > lastStarSpawnY + STAR_SPAWN_INTERVAL) {
+            lastStarSpawnY = py;
+            if (Math.random() < STAR_PROBABILITY) {
+                spawnStar(new Vec2(randomX(), py + 3));
             }
-
-            float speed = platformSpeeds.get(i);
-
-            Vec2 pos = platform.getPosition();
-            float newX = pos.x + speed;
-
-            // reverse direction when platform reaches the boundary/wall
-            if (newX > 10 || newX < -10) {
-                speed *= -1;
-                platformSpeeds.set(i, speed);
-            }
-
-            platform.setPosition(new Vec2(newX, pos.y));
-
         }
     }
-    public void makeEnemiesShoot() {
-        for (Enemy enemy : enemies) {
-            enemy.shootProjectile();
+
+    private void generatePlatforms(int count) {
+        for (int i = 0; i < count; i++) {
+            float x = randomX();
+            float y = lastPlatformY + 5 + (float) (Math.random() * 3);
+            addPlatform(x, y, Math.random() < 0.3);
         }
+    }
+
+    private float randomX() {
+        return -10 + (float) (Math.random() * 20);
     }
 
     private void startUpdateLoop() {
-        this.addStepListener(new StepListener() {
-            private int counter = 0;
-
-            @Override
-            public void preStep(StepEvent e) {
+        addStepListener(new StepListener() {
+            int counter = 0;
+            @Override public void preStep(StepEvent e) {
                 updatePlatform();
                 updateMovingPlatforms();
-
-                counter++;
-
-                if (counter % 180 == 0) { // Every 120 steps (~2 seconds)
-                    makeEnemiesShoot();
-                }
-                if (fallingSpikesEnabled) {
-                    spikeTimer++;
-                    if (spikeTimer >= spikeInterval) {
-                        spawnRandomFallingSpike();
-                        spikeTimer = 0;
-                    }
+                if (++counter % 180 == 0) makeEnemiesShoot();
+                if (fallingSpikesEnabled && ++spikeTimer >= spikeInterval) {
+                    spawnRandomFallingSpike();
+                    spikeTimer = 0;
                 }
             }
-
-            @Override
-            public void postStep(StepEvent e) {
-                // Not needed right now
-            }
+            @Override public void postStep(StepEvent e) { }
         });
     }
 
-
-
-
-    public Player getPlayer() {
-        return player;
+    private void updateMovingPlatforms() {
+        for (int i = 0; i < movingPlatforms.size(); i++) {
+            StaticBody p = movingPlatforms.get(i);
+            float speed = platformSpeeds.get(i);
+            Vec2 pos = p.getPosition();
+            float nx = pos.x + speed;
+            if (nx > 10 || nx < -10) {
+                speed = -speed;
+                platformSpeeds.set(i, speed);
+            }
+            p.setPosition(new Vec2(nx, pos.y));
+        }
     }
 
+    private void makeEnemiesShoot() {
+        for (Enemy e : enemies) e.shootProjectile();
+    }
 
-
-
-    private void spawnStarAt(Vec2 position) {
+    private void spawnStar(Vec2 pos) {
         Star star = new Star(this);
-        star.setPosition(position);
+        star.setPosition(pos);
+    }
 
+    private void spawnRandomFallingSpike() {
+        String img = SPIKE_IMAGES[(int) (Math.random() * SPIKE_IMAGES.length)];
+        new FallingSpike(this, new Vec2(randomX(), player.getPosition().y + 15), img);
     }
 
     public void enableFallingSpikes() {
         if (!fallingSpikesEnabled && isLevel2) {
             fallingSpikesEnabled = true;
-            spikeInterval = 100;
+            spikeInterval = 200;
         }
     }
 
-
-    private void spawnRandomFallingSpike() {
-        String randomImage = spikeImages[(int)(Math.random() * spikeImages.length)];
-        float x = -10 + (float)(Math.random() * 20); // anywhere across the screen
-        float y = player.getPosition().y + 15;       // above player
-
-        new FallingSpike(this, new Vec2(x, y), randomImage);
-    }
-
-
-
-
-
-
+    public Player getPlayer() { return player; }
 }

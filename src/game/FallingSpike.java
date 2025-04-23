@@ -20,7 +20,7 @@ public class FallingSpike extends DynamicBody implements CollisionListener {
         setPosition(spawnPosition);
 
         // Gravity will pull it down
-        setGravityScale(1);
+        setGravityScale(0.5f);
 
         // Add collision logic
         addCollisionListener(this);
