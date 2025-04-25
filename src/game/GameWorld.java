@@ -23,6 +23,8 @@ public class GameWorld extends World {
     private String groundImagePath;
     private float platformImageScale;
     private final boolean isLevel2;
+    private final boolean isLevel3;
+
 
     // Star spawning
     private float lastStarSpawnY = -10;
@@ -38,14 +40,14 @@ public class GameWorld extends World {
     // Enemies
     private final List<Enemy> enemies = new ArrayList<>();
 
-    public GameWorld(Game game, String platformImg, String groundImg, boolean isLevel2) {
+    public GameWorld(Game game, String platformImg, String groundImg, boolean isLevel2, boolean isLevel3) {
         super();
         this.game = game;
         this.platformImagePath = platformImg;
         this.groundImagePath = groundImg;
+        this.isLevel3 = isLevel3;
         this.platformImageScale = 1.6f;
         this.isLevel2 = isLevel2;
-
         this.player = new Player(this, game);
         this.player.setPosition(new Vec2(0, -7));
 
@@ -120,7 +122,7 @@ public class GameWorld extends World {
     }
 
     private void maybeSpawnStaticSpike(float x, float y) {
-        if (Math.random() < 0.3) {
+        if (Math.random() < 0.15) {
             float offsetX = (Math.random() < 0.5) ? x - 1.3f : x + 1.3f;
             Vec2 pos = new Vec2(offsetX, y + 1.5f);
             new IceSpike(this, pos);
@@ -129,7 +131,9 @@ public class GameWorld extends World {
 
     private void spawnEnemyOnPlatform(float x, float y) {
         boolean lvl2 = platformImagePath.contains("ice");
-        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player, lvl2);
+        boolean lvl3 = platformImagePath.contains("fire");
+
+        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player, lvl2, lvl3 );
         enemies.add(enemy);
     }
 

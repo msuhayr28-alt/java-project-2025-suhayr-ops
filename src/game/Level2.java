@@ -35,7 +35,7 @@ public class Level2 {
      * once the player collects 3 stars.
      */
     public GameWorld createWorld(Game game) {
-        GameWorld world = new GameWorld(game, platformImage, groundImage, true);
+        GameWorld world = new GameWorld(game, platformImage, groundImage, true, false);
         Player player = world.getPlayer();
 
         // One-time spawn of patrol enemy after 3 stars

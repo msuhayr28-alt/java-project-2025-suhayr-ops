@@ -21,13 +21,16 @@ public class Enemy extends StaticBody {
     private final World world;
     private final Player player;
     private boolean isLevel2Enemy;
+    private boolean isLevel3Enemy;
 
 
-    public Enemy(World world, Vec2 position, Player player, boolean isLevel2Enemy) {
+
+    public Enemy(World world, Vec2 position, Player player, boolean isLevel2Enemy, boolean isLevel3Enemy) {
         super(world, enemyShape);
         this.world = world;
         this.player = player;
         this.isLevel2Enemy = isLevel2Enemy;
+        this.isLevel3Enemy = isLevel3Enemy;
 
         if (isLevel2Enemy) {
             sprites = new BodyImage[] {
@@ -75,7 +78,16 @@ public class Enemy extends StaticBody {
         direction.normalize();
         direction.mulLocal(15f); // speed of projectile
 
-        String imagePath = isLevel2Enemy ? "data/ice_shot.png" : "data/shot.png";
+        String imagePath;
+
+        if (isLevel2Enemy) {
+            imagePath = "data/ice_shot.png";
+        } else if (isLevel3Enemy) {
+            imagePath = "data/fireball.png";
+        } else {
+            imagePath = "data/shot.png"; // Default for level 1 or generic enemies
+        }
+
 
 
         //  makes it look like shot is coming out of enemies mouth

@@ -31,7 +31,7 @@ public class Game {
     /** Initialise a new Game. */
     public Game() {
 
-        game = new GameWorld(this, "data/ground.png", "data/ground.png", false);
+        game = new GameWorld(this, "data/ground.png", "data/ground.png", false, false);
 
         Player player = game.getPlayer();
 
@@ -108,6 +108,15 @@ public class Game {
             // Now hook it into the view:
             view.setWorld(game);
             view.setBackgroundImage(level2.getBackgroundImage());
+            view.setPlayer(game.getPlayer());
+
+            game.start();
+        }else if(currentLevel == 3){
+            Level3 level3 = new Level3();
+            game = level3.createWorld(this);
+
+            view.setWorld(game);
+            view.setBackgroundImage(level3.getBackgroundImage());
             view.setPlayer(game.getPlayer());
 
             game.start();

@@ -24,7 +24,7 @@ public class PatrolEnemy extends Walker {
     private final PatrolMode mode;
 
 
-    /**
+    /*
      * @param world         the physics world
      * @param spawn         initial position
      * @param leftBound     left x-limit for patrol
@@ -110,8 +110,8 @@ public class PatrolEnemy extends Walker {
                     startWalking(dx > 0 ? 5 : -5);
                     facingRight = dx > 0;
                 } else {
-                    if (pos.x < leftBound) { startWalking(3); facingRight = true; }
-                    else if (pos.x > rightBound) { startWalking(-3); facingRight = false; }
+                    if (pos.x > leftBound) { startWalking(3); facingRight = true; }
+                    else if (pos.x < rightBound) { startWalking(-3); facingRight = false; }
                 }
                 break;
 
