@@ -23,7 +23,7 @@ public class Level3 {
         // Spawn a flying patrol enemy immediately
         PatrolEnemy flyer = new PatrolEnemy(
                 world,
-                new Vec2(player.getPosition().x, player.getPosition().y + 6),
+                new Vec2(player.getPosition().x, player.getPosition().y + 50),
                 -10, 10,
                 player,
                 fireLeftSprites,

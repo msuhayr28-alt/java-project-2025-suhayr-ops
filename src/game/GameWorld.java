@@ -201,12 +201,20 @@ public class GameWorld extends World {
     }
 
     private void spawnRandomFallingSpike() {
-        String img = SPIKE_IMAGES[(int) (Math.random() * SPIKE_IMAGES.length)];
-        new FallingSpike(this, new Vec2(randomX(), player.getPosition().y + 15), img);
+        if(isLevel2) {
+            String img = SPIKE_IMAGES[(int) (Math.random() * SPIKE_IMAGES.length)];
+            FallingSpike.fallingSound = "data/spikeShatter.wav";
+            new FallingSpike(this, new Vec2(randomX(), player.getPosition().y + 15), img);
+
+        } else if (isLevel3) {
+            FallingSpike.fallingSound = "data/fireSound.wav";
+            new FallingSpike(this, new Vec2(randomX(), player.getPosition().y + 15), "data/fireball.png");
+
+        }
     }
 
     public void enableFallingSpikes() {
-        if (!fallingSpikesEnabled && isLevel2) {
+        if (!fallingSpikesEnabled && (isLevel2 || isLevel3)){
             fallingSpikesEnabled = true;
             spikeInterval = 200;
         }
