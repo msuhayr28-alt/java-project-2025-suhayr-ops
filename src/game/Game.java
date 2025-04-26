@@ -1,100 +1,90 @@
 package game;
 
-import city.cs.engine.*;
-import org.jbox2d.collision.Collision;
-import org.jbox2d.common.Vec2;
-
-import javax.sound.sampled.AudioInputStream;
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyListener;
-import java.io.File;
+
 /**
- * Your main game entry point
+ * The main entry point and controller for Wallace’s Adventure.
+ * Manages levels, GUI, health & score displays, background music, and transitions.
  */
 public class Game {
 
+    /** Label showing the player’s health as an icon. */
     private JLabel healthLabel;
+    /** Main application window. */
     private JFrame frame;
+    /** The current game world (level). */
     private GameWorld game;
+    /** Label displaying the star‐collection score. */
     private JLabel scoreLabel;
+    /** Clip for background music playback. */
     private Clip backgroundClip;
+    /** View into the physics world, handles rendering & camera. */
     private GameView view;
+    /** Tracks which level the player is on (1,2,3…). */
     private int currentLevel = 1;
 
-
     /**
-     * Initialise a new Game.
+     * Create and initialize a new Game, set up level 1, GUI, controls, and start simulation.
      */
     public Game() {
 
+        // create level 1 world
         game = new GameWorld(this, "data/ground.png", "data/ground.png", false, false);
 
         Player player = game.getPlayer();
 
-        // make a view to look into the game world
+        // set up view
         view = new GameView(game, 500, 500, player, "data/background1.png");
         view.setLayout(null);
 
-
-        // add PlayerController to handle movement
+        // add keyboard controls
         PlayerController controller = new PlayerController(player);
         view.addKeyListener(controller);
-
-        // ensures focus stays on the game view
         view.setFocusable(true);
         view.requestFocusInWindow();
 
-
-        // create a Java window (frame) and add the game
-        // and view it
+        // build frame
         frame = new JFrame("Wallace's Adventure");
         frame.setLayout(new BorderLayout());
         frame.add(view, BorderLayout.CENTER);
 
+        // health display
         healthLabel = new JLabel(new ImageIcon("data/health4.png"));
-        healthLabel.setBounds(460, 5, 45, 45); // Position at bottom-left
+        healthLabel.setBounds(460, 5, 45, 45);
         view.add(healthLabel);
 
-
-        // enable the frame to quit the application
-        // when the x button is pressed
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setLocationByPlatform(true);
-        // don't let the frame be resized
         frame.setResizable(false);
-        // size the frame to fit the world view
         frame.pack();
-        // finally, make the frame visible
         frame.setVisible(true);
 
+        // play level 1 music
         Sound.playBackgroundMusic("data/background.wav");
 
-
-        //optional: uncomment this to make a debugging view
-        //JFrame debugView = new DebugViewer(game, 500, 500);
-
+        // score display
         scoreLabel = new JLabel("Stars: 0");
         scoreLabel.setForeground(Color.WHITE);
         scoreLabel.setBounds(10, 40, 100, 20);
         view.add(scoreLabel);
 
-        // start our game world simulation!
+        // start physics
         game.start();
 
-        Timer gameTimer = new Timer(100, e -> {
-            game.updatePlatform();
-
-        });
-        gameTimer.start();
+        // timer to spawn platforms
+        new Timer(100, e -> game.updatePlatform()).start();
     }
 
+    /**
+     * Advance to the next level: stops current world, resets HUD, loads new world, GUI, music.
+     */
     public void goToNextLevel() {
-
         currentLevel++;
 
+        // reset HUD
         updateScoreDisplay(0);
         updateHealthDisplay(4);
         Sound.stopBackgroundMusic();
@@ -102,38 +92,32 @@ public class Game {
             game.stop();
         }
 
+        // create appropriate level
         if (currentLevel == 2) {
-            // Use the Level2 factory method to build the world,
-            // which also wires in the patrol‐enemy spawn after 3 stars:
             Level2 level2 = new Level2();
             game = level2.createWorld(this);
-
-            // Now hook it into the view:
             view.setWorld(game);
             view.setBackgroundImage(level2.getBackgroundImage());
             view.setPlayer(game.getPlayer());
             Sound.playBackgroundMusic("data/ice_music.wav");
-
-
             game.start();
+
         } else if (currentLevel == 3) {
             Level3 level3 = new Level3();
             game = level3.createWorld(this);
-
             view.setWorld(game);
             view.setBackgroundImage(level3.getBackgroundImage());
             view.setPlayer(game.getPlayer());
             Sound.playBackgroundMusic("data/level3.wav");
-
-
             game.start();
+
         } else {
             gameWon();
+            return;
         }
 
-        // Re-attach controls & reset star count on the new player
+        // re‐attach controls and reset player star count
         Player p = game.getPlayer();
-
         view.setPlayer(p);
         for (KeyListener kl : view.getKeyListeners()) {
             view.removeKeyListener(kl);
@@ -143,95 +127,89 @@ public class Game {
         p.resetStarCount();
     }
 
-
+    /**
+     * Update the health icon to reflect the given health value.
+     * @param health number of health points remaining (1–4)
+     */
     public void updateHealthDisplay(int health) {
         healthLabel.setIcon(new ImageIcon("data/health" + health + ".png"));
-        healthLabel.repaint(); // makes the icon change visible
-
+        healthLabel.repaint();
     }
 
+    /** Trigger the game-over end screen. */
     public void gameOver() {
-
         endScreen("data/gameover.png");
-
     }
 
+    /** Trigger the “you win” end screen. */
     public void gameWon() {
-
         endScreen("data/youWin.png");
     }
 
+    /**
+     * Display a translucent overlay with the given image and a Restart button.
+     * @param imagePath path to the end-screen image
+     */
     private void endScreen(String imagePath) {
-        // Stop the game
         game.stop();
         Sound.stopBackgroundMusic();
 
-        // Create a transparent panel over the game view
         JPanel overlay = new JPanel() {
-            @Override
-            protected void paintComponent(Graphics g) {
+            @Override protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                // Draw translucent background
-                Graphics2D g2d = (Graphics2D) g.create();
-                g2d.setColor(new Color(0, 0, 0, 150)); // black with alpha 150
-                g2d.fillRect(0, 0, getWidth(), getHeight());
+                Graphics2D g2d = (Graphics2D)g.create();
+                g2d.setColor(new Color(0,0,0,150));
+                g2d.fillRect(0,0,getWidth(),getHeight());
                 g2d.dispose();
             }
         };
         overlay.setLayout(new BoxLayout(overlay, BoxLayout.Y_AXIS));
         overlay.setOpaque(false);
-        overlay.setBounds(0, 0, 500, 500); // match game view size
+        overlay.setBounds(0,0,500,500);
         overlay.setFocusable(false);
 
-        // Add Game Over image
         ImageIcon icon = new ImageIcon(imagePath);
-        Image scaledImage = icon.getImage().getScaledInstance(300, 200, Image.SCALE_SMOOTH);
-        JLabel imageLabel = new JLabel(new ImageIcon(scaledImage));
-        imageLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+        Image img = icon.getImage().getScaledInstance(300,200,Image.SCALE_SMOOTH);
+        JLabel imgLabel = new JLabel(new ImageIcon(img));
+        imgLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
         overlay.add(Box.createVerticalGlue());
-        overlay.add(imageLabel);
+        overlay.add(imgLabel);
 
-        // Add restart button
-        JButton restartButton = new JButton("Restart");
-        restartButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        restartButton.addActionListener(e -> restartGame());
-        overlay.add(Box.createRigidArea(new Dimension(0, 20)));
-        overlay.add(restartButton);
+        JButton restart = new JButton("Restart");
+        restart.setAlignmentX(Component.CENTER_ALIGNMENT);
+        restart.addActionListener(e -> restartGame());
+        overlay.add(Box.createRigidArea(new Dimension(0,20)));
+        overlay.add(restart);
         overlay.add(Box.createVerticalGlue());
 
-        // Add overlay to the view
         frame.getLayeredPane().add(overlay, JLayeredPane.POPUP_LAYER);
         frame.revalidate();
         frame.repaint();
-
-        if (backgroundClip != null && backgroundClip.isRunning()) {
-            backgroundClip.stop();
-        }
-
     }
 
-
+    /** Dispose current window and launch a fresh Game instance. */
     private void restartGame() {
-        frame.dispose(); // Close the current game window
-        new Game(); // Start a new game
+        frame.dispose();
+        new Game();
     }
 
+    /**
+     * Update the on-screen star count.
+     * @param score new star count
+     */
     public void updateScoreDisplay(int score) {
         scoreLabel.setText("Stars: " + score);
-
     }
 
+    /**
+     * @return the current GameWorld
+     */
     public GameWorld getWorld() {
         return game;
     }
 
-
-    /**
-     * Run the game.
-     */
+    /** Launch the application. */
     public static void main(String[] args) {
         new Game();
     }
-
-
 }

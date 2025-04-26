@@ -8,40 +8,57 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 /**
- * A patrol enemy with configurable left/right animations and chase behavior.
+ * A patrol enemy that either paces between two X-bounds or chases the player.
  */
 public class PatrolEnemy extends Walker {
-    private final float leftBound, rightBound;
+
+    private final float leftBound;
+    private final float rightBound;
     private final Player player;
     private final BodyImage[] walkLeftImages;
     private final BodyImage[] walkRightImages;
     private final int frameDelay;
-    private int currentFrame = 0;
-    private boolean facingRight = true;
-    private Timer animationTimer;
-    private AttachedImage currentImage;
-    private boolean chasing = false;
     private final PatrolMode mode;
 
+    private int currentFrame = 0;
+    private boolean facingRight = true;
+    private boolean chasing = false;
 
-    /*
-     * @param world         the physics world
-     * @param spawn         initial position
-     * @param leftBound     left x-limit for patrol
-     * @param rightBound    right x-limit for patrol
-     * @param player        the player to chase
-     * @param walkLeft      array of images for left-walking animation
-     * @param walkRight     array of images for right-walking animation
-     * @param frameDelay    milliseconds between animation frames
+    private Timer animationTimer;
+    private AttachedImage currentImage;
+
+    /**
+     * Patrol behavior modes.
      */
-
     public enum PatrolMode {
-        PATROL_ONLY,    // Level 2
-        CHASE_PLAYER    // Level 3
+        PATROL_ONLY,    // only move back-and-forth within bounds
+        CHASE_PLAYER    // actively fly toward the player
     }
 
-    public PatrolEnemy(World world, Vec2 spawn, float leftBound, float rightBound,
-                       Player player, BodyImage[] walkLeft, BodyImage[] walkRight, int frameDelay, PatrolMode mode) {
+    /**
+     * Construct a PatrolEnemy.
+     *
+     * @param world        the physics world
+     * @param spawn        initial spawn position
+     * @param leftBound    leftmost X coordinate to patrol
+     * @param rightBound   rightmost X coordinate to patrol
+     * @param player       reference to the Player
+     * @param walkLeft     left-walking animation frames
+     * @param walkRight    right-walking animation frames
+     * @param frameDelay   ms between animation frames
+     * @param mode         patrol behavior mode
+     */
+    public PatrolEnemy(
+            World world,
+            Vec2 spawn,
+            float leftBound,
+            float rightBound,
+            Player player,
+            BodyImage[] walkLeft,
+            BodyImage[] walkRight,
+            int frameDelay,
+            PatrolMode mode
+    ) {
         super(world);
         this.leftBound = leftBound;
         this.rightBound = rightBound;
@@ -49,123 +66,115 @@ public class PatrolEnemy extends Walker {
         this.walkLeftImages = walkLeft;
         this.walkRightImages = walkRight;
         this.frameDelay = frameDelay;
-
         this.mode = mode;
 
         setPosition(spawn);
         setGravityScale(0);
 
-        Shape shape = new BoxShape(1,1);
+        Shape shape = new BoxShape(1, 1);
         new SolidFixture(this, shape);
 
-        // start with first frame
-        currentImage = new AttachedImage(this, walkRightImages[0], 1, 0, new Vec2(0,0));
-        setupAnimationTimer();
-        setupDetectionSensor();
-        setupCollisionHandler();
-
-    }
-    private void setupCollisionHandler() {
-        this.addCollisionListener(new CollisionListener() {
-            @Override
-            public void collide(CollisionEvent e) {
-                if (e.getOtherBody() == player) {
-                    player.decreaseHealth(); // Player loses a life (you need this method on Player)
-
-                    PatrolEnemy.this.destroy(); // Destroy current enemy
-
-                    // Track player's Y position to respawn after 50 units
-                    float respawnY = player.getPosition().y + 50;
-                    World world = getWorld(); // Save reference before destroy()
-
-                    world.addStepListener(new StepListener() {
-                        private boolean respawned = false;
-
-                        @Override
-                        public void preStep(StepEvent stepEvent) {
-                            if (!respawned && player.getPosition().y >= respawnY) {
-                                respawned = true;
-                                System.out.println("Respawning new PatrolEnemy...");
-
-                                PatrolEnemy newEnemy = new PatrolEnemy(
-                                        world,
-                                        new Vec2(player.getPosition().x, player.getPosition().y + 5),
-                                        player.getPosition().x - 10,
-                                        player.getPosition().x + 10,
-                                        player,
-                                        walkLeftImages,
-                                        walkRightImages,
-                                        frameDelay,
-                                        mode
-                                );
-
-                                world.addStepListener(new StepListener() {
-                                    @Override
-                                    public void preStep(StepEvent e) {
-                                        newEnemy.update();
-                                    }
-                                    @Override
-                                    public void postStep(StepEvent e) {}
-                                });
-                            }
-                        }
-
-                        @Override
-                        public void postStep(StepEvent stepEvent) {}
-                    });
-                }
-            }
-        });
+        currentImage = new AttachedImage(this, walkRightImages[0], 1, 0, new Vec2(0, 0));
+        initAnimation();
+        initDetectionSensor();
+        initCollisionHandler();
     }
 
-    private void setupAnimationTimer() {
+    /**
+     * Starts the animation timer cycling through frames.
+     */
+    private void initAnimation() {
         animationTimer = new Timer(frameDelay, new ActionListener() {
             @Override public void actionPerformed(ActionEvent e) {
-                updateAnimation();
+                removeAttachedImage(currentImage);
+                BodyImage[] frames = facingRight ? walkRightImages : walkLeftImages;
+                currentImage = new AttachedImage(PatrolEnemy.this, frames[currentFrame], 1, 0, new Vec2(0, 0));
+                currentFrame = (currentFrame + 1) % frames.length;
             }
         });
         animationTimer.start();
     }
 
-    private void setupDetectionSensor() {
+    /**
+     * Creates a sensor that triggers chase mode when the player enters.
+     */
+    private void initDetectionSensor() {
         float width = (rightBound - leftBound) / 2 + 2;
-        Sensor detect = new Sensor(this, new BoxShape(width, 2,
-                new Vec2((rightBound + leftBound) / 2 - getPosition().x, 0)));
-        detect.addSensorListener(new SensorListener() {
-            public void beginContact(SensorEvent e) {
-                if (e.getContactBody() == player) chasing = true;
+        Vec2 offset = new Vec2((rightBound + leftBound) / 2 - getPosition().x, 0);
+        Sensor sensor = new Sensor(this, new BoxShape(width, 2, offset));
+        sensor.addSensorListener(new SensorListener() {
+            @Override public void beginContact(SensorEvent e) {
+                if (e.getContactBody() == player) {
+                    chasing = true;
+                }
             }
-            public void endContact(SensorEvent e) { }
+            @Override public void endContact(SensorEvent e) { }
         });
     }
 
-    private void updateAnimation() {
-        // remove old frame
-        this.removeAttachedImage(currentImage);
-        BodyImage[] frames = facingRight ? walkRightImages : walkLeftImages;
-        currentImage = new AttachedImage(this, frames[currentFrame], 1, 0, new Vec2(0,0));
-        currentFrame = (currentFrame + 1) % frames.length;
+    /**
+     * Handles collision with the player: damage, destroy, and schedule respawn.
+     */
+    private void initCollisionHandler() {
+        addCollisionListener(new CollisionListener() {
+            @Override public void collide(CollisionEvent e) {
+                if (e.getOtherBody() == player) {
+                    player.decreaseHealth();
+                    destroy();
+                    scheduleRespawn();
+                }
+            }
+        });
     }
 
     /**
-     * Call every step to patrol or chase.
+     * After the player rises 50 units, respawn a new patrol enemy.
+     */
+    private void scheduleRespawn() {
+        final World world = getWorld();
+        final float targetY = player.getPosition().y + 50;
+        world.addStepListener(new StepListener() {
+            private boolean respawned = false;
+            @Override public void preStep(StepEvent e) {
+                if (!respawned && player.getPosition().y >= targetY) {
+                    respawned = true;
+                    Vec2 spawn = new Vec2(player.getPosition().x, player.getPosition().y + 5);
+                    PatrolEnemy fresh = new PatrolEnemy(
+                            world, spawn, leftBound, rightBound,
+                            player, walkLeftImages, walkRightImages,
+                            frameDelay, mode
+                    );
+                    world.addStepListener(new StepListener() {
+                        @Override public void preStep(StepEvent e) { fresh.update(); }
+                        @Override public void postStep(StepEvent e) { }
+                    });
+                }
+            }
+            @Override public void postStep(StepEvent e) { }
+        });
+    }
+
+    /**
+     * Update called each world step: patrol or chase behavior.
      */
     public void update() {
         Vec2 pos = getPosition();
         switch (mode) {
             case PATROL_ONLY:
                 if (pos.x < leftBound || pos.x > rightBound) {
-                    stopWalking(); // stop moving outside patrol bounds
+                    stopWalking();
                     return;
                 }
-
                 if (chasing) {
                     float dx = player.getPosition().x - pos.x;
-                    startWalking(dx > 0 ? 5 : -5);
+                    startWalking(dx > 0 ? 3 : -3);
                     facingRight = dx > 0;
                 } else {
-                    if (pos.x > leftBound) { startWalking(3); facingRight = true; }
-                    else if (pos.x < rightBound) { startWalking(-3); facingRight = false; }
+                    if (pos.x <= leftBound) {
+                        startWalking(3); facingRight = true;
+                    } else if (pos.x >= rightBound) {
+                        startWalking(-3); facingRight = false;
+                    }
                 }
                 break;
 
@@ -176,9 +185,5 @@ public class PatrolEnemy extends Walker {
                 break;
         }
     }
-
-
-
-
-
 }
+

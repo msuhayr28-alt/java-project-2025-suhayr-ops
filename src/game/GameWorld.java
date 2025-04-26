@@ -7,14 +7,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A game world that handles platforms, enemies, stars, and falling spikes.
+ * The GameWorld class configures and manages the game world, including platform generation,
+ * enemy spawning, collectibles, and level-specific behaviors.
  */
 public class GameWorld extends World {
 
     private final Player player;
     private final Game game;
 
-    // Platform generation
+    // Platform generation state
     private float lastPlatformY = -7;
     private final List<StaticBody> platforms = new ArrayList<>();
     private final List<StaticBody> movingPlatforms = new ArrayList<>();
@@ -25,38 +26,54 @@ public class GameWorld extends World {
     private final boolean isLevel2;
     private final boolean isLevel3;
 
-
-    // Star spawning
+    // Star spawning configuration
     private float lastStarSpawnY = -10;
     private static final float STAR_SPAWN_INTERVAL = 15f;
     private static final float STAR_PROBABILITY = 0.9f;
 
-    // Falling spikes
+    // Falling spike configuration
     private static final String[] SPIKE_IMAGES = {"data/spike1.png", "data/spike2.png", "data/spike3.png"};
     private boolean fallingSpikesEnabled = false;
     private int spikeTimer = 0;
     private int spikeInterval = 180;
 
-    // Enemies
+    // Active enemies in the world
     private final List<Enemy> enemies = new ArrayList<>();
 
+    /**
+     * Constructs a new GameWorld.
+     *
+     * @param game            Reference to the main Game controller
+     * @param platformImg     File path for platform image
+     * @param groundImg       File path for ground image
+     * @param isLevel2        True if this is level 2 (ice-themed)
+     * @param isLevel3        True if this is level 3 (fire-themed)
+     */
     public GameWorld(Game game, String platformImg, String groundImg, boolean isLevel2, boolean isLevel3) {
         super();
         this.game = game;
         this.platformImagePath = platformImg;
         this.groundImagePath = groundImg;
-        this.isLevel3 = isLevel3;
         this.platformImageScale = 1.6f;
         this.isLevel2 = isLevel2;
+        this.isLevel3 = isLevel3;
+
+        // Initialize player
         this.player = new Player(this, game);
         this.player.setPosition(new Vec2(0, -7));
 
+        // Create static geometry
         createInitialPlatform();
         createWalls();
         createGround();
+
+        // Begin update loop
         startUpdateLoop();
     }
 
+    /**
+     * Create the first platform under the player.
+     */
     private void createInitialPlatform() {
         BoxShape shape = new BoxShape(2f, 0.75f);
         StaticBody platform = new StaticBody(this, shape);
@@ -64,6 +81,9 @@ public class GameWorld extends World {
         platform.addImage(new BodyImage(platformImagePath, platformImageScale));
     }
 
+    /**
+     * Create the ground tiles across the bottom of the world.
+     */
     private void createGround() {
         float tileWidth = 2f;
         for (int i = 0; i < 13; i++) {
@@ -74,11 +94,19 @@ public class GameWorld extends World {
         }
     }
 
+    /**
+     * Create invisible walls on left and right to confine the player.
+     */
     private void createWalls() {
         createWall(-13);
         createWall(13);
     }
 
+    /**
+     * Create a single wall at the given x-coordinate.
+     *
+     * @param x The x-coordinate of the wall to be created.
+     */
     private void createWall(float x) {
         BoxShape shape = new BoxShape(0.5f, 1000f);
         StaticBody wall = new StaticBody(this, shape);
@@ -86,6 +114,13 @@ public class GameWorld extends World {
         new SolidFixture(wall, shape).setFriction(0);
     }
 
+    /**
+     * Add a platform at the specified (x,y) coordinates. Optionally, make it moving, and apply level-specific effects.
+     *
+     * @param x        The x-coordinate of the platform
+     * @param y        The y-coordinate of the platform
+     * @param moving   If true, the platform will be moving
+     */
     private void addPlatform(float x, float y, boolean moving) {
         BoxShape shape = new BoxShape(2f, 0.75f);
         StaticBody platform = new StaticBody(this, shape);
@@ -94,10 +129,9 @@ public class GameWorld extends World {
         SolidFixture fixture = new SolidFixture(platform, shape);
 
         if (isLevel2) {
-            if(Math.random() < 0.4f) {
+            if (Math.random() < 0.4f) {
                 addSnowOverlay(platform);
                 fixture.setFriction(1);
-
             }
             maybeSpawnStaticSpike(x, y);
         }
@@ -116,11 +150,22 @@ public class GameWorld extends World {
         lastPlatformY = y;
     }
 
+    /**
+     * Attach a snow image overlay to a platform.
+     *
+     * @param platform The platform to which the snow overlay will be attached.
+     */
     private void addSnowOverlay(StaticBody platform) {
         BodyImage snow = new BodyImage("data/snow_overlay.png", platformImageScale);
         new AttachedImage(platform, snow, 1, 0, new Vec2(0, 1f));
     }
 
+    /**
+     * Randomly spawn a static ice spike above the platform.
+     *
+     * @param x The x-coordinate of the platform
+     * @param y The y-coordinate of the platform
+     */
     private void maybeSpawnStaticSpike(float x, float y) {
         if (Math.random() < 0.15) {
             float offsetX = (Math.random() < 0.5) ? x - 1.3f : x + 1.3f;
@@ -129,53 +174,35 @@ public class GameWorld extends World {
         }
     }
 
+    /**
+     * Spawn an enemy on top of a platform.
+     *
+     * @param x The x-coordinate of the platform
+     * @param y The y-coordinate of the platform
+     */
     private void spawnEnemyOnPlatform(float x, float y) {
-        Vec2 position = new Vec2(x, y + 1.65f);
-
-        BodyImage[] selectedSprites;
-
+        Vec2 pos = new Vec2(x, y + (isLevel3 ? 2.2f : 1.65f));
+        BodyImage[] sprites;
         if (isLevel2) {
-            selectedSprites = new BodyImage[] {
-                    new BodyImage("data/enemy_ice1.png", 2),
+            sprites = new BodyImage[]{new BodyImage("data/enemy_ice1.png", 2),
                     new BodyImage("data/enemy_ice2.png", 2),
-                    new BodyImage("data/enemy_ice3.png", 2)
-            };
+                    new BodyImage("data/enemy_ice3.png", 2)};
         } else if (isLevel3) {
-            selectedSprites = new BodyImage[] {
-                    new BodyImage("data/flameShooter1.png", 4),
-                    new BodyImage("data/flameShooter2.png", 4),
-                    new BodyImage("data/flameShooter3.png", 4),
-                    new BodyImage("data/flameShooter4.png", 4)
-            };
-            position = new Vec2(x, y + 2.2f);
-
+            sprites = new BodyImage[]{new BodyImage("data/flameShooter1.png", 4)};
         } else {
-            selectedSprites = new BodyImage[] {
-                    new BodyImage("data/enemy1.png", 2),
-                    new BodyImage("data/enemy2.png", 2),
-                    new BodyImage("data/enemy3.png", 2)
-            };
+            sprites = new BodyImage[]{new BodyImage("data/enemy1.png", 2)};
         }
-
-        String projectileImage;
-        if (isLevel2) {
-            projectileImage = "data/ice_shot.png";
-        } else if (isLevel3) {
-            projectileImage = "data/fireball.png";
-        } else {
-            projectileImage = "data/shot.png";
-        }
-
-        Enemy enemy = new Enemy(this, position, player, selectedSprites, projectileImage);
+        String shot = isLevel2 ? "data/ice_shot.png" : isLevel3 ? "data/fireball.png" : "data/shot.png";
+        Enemy enemy = new Enemy(this, pos, player, sprites, shot);
         enemies.add(enemy);
-
     }
 
-
+    /**
+     * Update platforms and spawn stars as the player ascends.
+     */
     public void updatePlatform() {
         float py = player.getPosition().y;
         if (py > lastPlatformY - 5) generatePlatforms(5);
-
         if (py > lastStarSpawnY + STAR_SPAWN_INTERVAL) {
             lastStarSpawnY = py;
             if (Math.random() < STAR_PROBABILITY) {
@@ -184,6 +211,11 @@ public class GameWorld extends World {
         }
     }
 
+    /**
+     * Generate multiple platforms above the highest one.
+     *
+     * @param count The number of platforms to generate.
+     */
     private void generatePlatforms(int count) {
         for (int i = 0; i < count; i++) {
             float x = randomX();
@@ -192,13 +224,21 @@ public class GameWorld extends World {
         }
     }
 
+    /**
+     * Return a random X-position within world bounds.
+     *
+     * @return The random X-coordinate.
+     */
     private float randomX() {
         return -10 + (float) (Math.random() * 20);
     }
 
+    /**
+     * Set up the main physics step listener to drive world updates.
+     */
     private void startUpdateLoop() {
         addStepListener(new StepListener() {
-            int counter = 0;
+            int counter;
             @Override public void preStep(StepEvent e) {
                 updatePlatform();
                 updateMovingPlatforms();
@@ -208,10 +248,13 @@ public class GameWorld extends World {
                     spikeTimer = 0;
                 }
             }
-            @Override public void postStep(StepEvent e) { }
+            @Override public void postStep(StepEvent e) {}
         });
     }
 
+    /**
+     * Move platforms marked as moving back and forth.
+     */
     private void updateMovingPlatforms() {
         for (int i = 0; i < movingPlatforms.size(); i++) {
             StaticBody p = movingPlatforms.get(i);
@@ -226,36 +269,47 @@ public class GameWorld extends World {
         }
     }
 
+    /**
+     * Make each enemy fire a projectile.
+     */
     private void makeEnemiesShoot() {
-        for (Enemy e : enemies) e.shootProjectile();
+        for (Enemy e : enemies) {
+            e.shootProjectile();
+        }
     }
 
+    /**
+     * Spawn a collectible star at the given position.
+     *
+     * @param pos The position where the star will be spawned.
+     */
     private void spawnStar(Vec2 pos) {
         Star star = new Star(this);
         star.setPosition(pos);
     }
 
+    /**
+     * Spawn a falling spike from above the player.
+     */
     private void spawnRandomFallingSpike() {
-        if(isLevel2) {
-            String img = SPIKE_IMAGES[(int) (Math.random() * SPIKE_IMAGES.length)];
-            FallingSpike.fallingSound = "data/spikeShatter.wav";
-            new FallingSpike(this, new Vec2(randomX(), player.getPosition().y + 15), img);
-
-        } else if (isLevel3) {
-            FallingSpike.fallingSound = "data/fireSound.wav";
-            new FallingSpike(this, new Vec2(randomX(), player.getPosition().y + 15), "data/fireball.png");
-
-        }
+        String img = SPIKE_IMAGES[(int) (Math.random() * SPIKE_IMAGES.length)];
+        if (isLevel2) FallingSpike.FALLING_SOUND = "data/spikeShatter.wav";
+        else if (isLevel3) FallingSpike.FALLING_SOUND = "data/fireSound.wav";
+        new FallingSpike(this, new Vec2(randomX(), player.getPosition().y + 15), img);
     }
 
+    /**
+     * Enable falling spikes behavior for ice or fire levels.
+     */
     public void enableFallingSpikes() {
-        if (!fallingSpikesEnabled && (isLevel2 || isLevel3)){
+        if (!fallingSpikesEnabled && (isLevel2 || isLevel3)) {
             fallingSpikesEnabled = true;
-            spikeInterval = 200;
-        }if(isLevel3){
-            spikeInterval = 100;
+            spikeInterval = isLevel3 ? 100 : 200;
         }
     }
 
+    /**
+     * @return The player object in this world.
+     */
     public Player getPlayer() { return player; }
 }
