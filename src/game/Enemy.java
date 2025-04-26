@@ -2,55 +2,30 @@ package game;
 
 import city.cs.engine.*;
 import org.jbox2d.common.Vec2;
-
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class Enemy extends StaticBody {
 
     private static final Shape enemyShape = new BoxShape(1, 1);
-    private static  BodyImage[] sprites = {
-            new BodyImage("data/enemy1.png", 2),
-            new BodyImage("data/enemy2.png", 2),
-            new BodyImage("data/enemy3.png", 2),
-            new BodyImage("data/enemy4.png", 2)
-    };
-
+    private BodyImage[] sprites;
     private int spriteIndex = 0;
     private AttachedImage currentImage;
     private final World world;
     private final Player player;
-    private boolean isLevel2Enemy;
-    private boolean isLevel3Enemy;
+    private String projectileImagePath;
 
 
-
-    public Enemy(World world, Vec2 position, Player player, boolean isLevel2Enemy, boolean isLevel3Enemy) {
+    public Enemy(World world, Vec2 position, Player player, BodyImage[] sprites, String projectileImagePath) {
         super(world, enemyShape);
         this.world = world;
         this.player = player;
-        this.isLevel2Enemy = isLevel2Enemy;
-        this.isLevel3Enemy = isLevel3Enemy;
-
-        if (isLevel2Enemy) {
-            sprites = new BodyImage[] {
-                    new BodyImage("data/enemy_ice1.png", 2),
-                    new BodyImage("data/enemy_ice2.png", 2),
-                    new BodyImage("data/enemy_ice3.png", 2)
-            };
-        } else {
-            sprites = new BodyImage[] {
-                    new BodyImage("data/enemy1.png", 2),
-                    new BodyImage("data/enemy2.png", 2),
-                    new BodyImage("data/enemy3.png", 2)
-            };
-        }
-
+        this.sprites = sprites;
+        this.projectileImagePath = projectileImagePath;
 
         setPosition(position);
-        currentImage = addImage(sprites[spriteIndex]); // Initial sprite
+        currentImage = addImage(sprites[spriteIndex]);
         startAnimation();
-
     }
 
     private void startAnimation() {
@@ -58,15 +33,12 @@ public class Enemy extends StaticBody {
                 new TimerTask() {
                     @Override
                     public void run() {
-                        // removes the old image
                         removeAttachedImage(currentImage);
-                        // updates the sprite index
                         spriteIndex = (spriteIndex + 1) % sprites.length;
-
-                        // adds the new image
                         currentImage = addImage(sprites[spriteIndex]);
                     }
-                }, 0, 250); // change sprite every 250ms
+                }, 0, 250
+        );
     }
 
     void shootProjectile() {
@@ -76,21 +48,8 @@ public class Enemy extends StaticBody {
         Vec2 playerPos = player.getPosition();
         Vec2 direction = playerPos.sub(enemyPos);
         direction.normalize();
-        direction.mulLocal(15f); // speed of projectile
+        direction.mulLocal(15f); // projectile speed
 
-        String imagePath;
-
-        if (isLevel2Enemy) {
-            imagePath = "data/ice_shot.png";
-        } else if (isLevel3Enemy) {
-            imagePath = "data/fireball.png";
-        } else {
-            imagePath = "data/shot.png"; // Default for level 1 or generic enemies
-        }
-
-
-
-        //  makes it look like shot is coming out of enemies mouth
-        new Projectile(this.getWorld(), enemyPos.add(new Vec2(1, 1)), direction, imagePath);
+        new Projectile(this.getWorld(), enemyPos.add(new Vec2(1, 1)), direction, projectileImagePath);
     }
 }

@@ -130,12 +130,47 @@ public class GameWorld extends World {
     }
 
     private void spawnEnemyOnPlatform(float x, float y) {
-        boolean lvl2 = platformImagePath.contains("ice");
-        boolean lvl3 = platformImagePath.contains("fire");
+        Vec2 position = new Vec2(x, y + 1.65f);
 
-        Enemy enemy = new Enemy(this, new Vec2(x, y + 1.65f), player, lvl2, lvl3 );
+        BodyImage[] selectedSprites;
+
+        if (isLevel2) {
+            selectedSprites = new BodyImage[] {
+                    new BodyImage("data/enemy_ice1.png", 2),
+                    new BodyImage("data/enemy_ice2.png", 2),
+                    new BodyImage("data/enemy_ice3.png", 2)
+            };
+        } else if (isLevel3) {
+            selectedSprites = new BodyImage[] {
+                    new BodyImage("data/flameShooter1.png", 4),
+                    new BodyImage("data/flameShooter2.png", 4),
+                    new BodyImage("data/flameShooter3.png", 4),
+                    new BodyImage("data/flameShooter4.png", 4)
+            };
+            position = new Vec2(x, y + 2.2f);
+
+        } else {
+            selectedSprites = new BodyImage[] {
+                    new BodyImage("data/enemy1.png", 2),
+                    new BodyImage("data/enemy2.png", 2),
+                    new BodyImage("data/enemy3.png", 2)
+            };
+        }
+
+        String projectileImage;
+        if (isLevel2) {
+            projectileImage = "data/ice_shot.png";
+        } else if (isLevel3) {
+            projectileImage = "data/fireball.png";
+        } else {
+            projectileImage = "data/shot.png";
+        }
+
+        Enemy enemy = new Enemy(this, position, player, selectedSprites, projectileImage);
         enemies.add(enemy);
+
     }
+
 
     public void updatePlatform() {
         float py = player.getPosition().y;
@@ -217,6 +252,8 @@ public class GameWorld extends World {
         if (!fallingSpikesEnabled && (isLevel2 || isLevel3)){
             fallingSpikesEnabled = true;
             spikeInterval = 200;
+        }if(isLevel3){
+            spikeInterval = 100;
         }
     }
 

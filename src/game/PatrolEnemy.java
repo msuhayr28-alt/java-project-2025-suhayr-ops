@@ -62,6 +62,60 @@ public class PatrolEnemy extends Walker {
         currentImage = new AttachedImage(this, walkRightImages[0], 1, 0, new Vec2(0,0));
         setupAnimationTimer();
         setupDetectionSensor();
+        setupCollisionHandler();
+
+    }
+    private void setupCollisionHandler() {
+        this.addCollisionListener(new CollisionListener() {
+            @Override
+            public void collide(CollisionEvent e) {
+                if (e.getOtherBody() == player) {
+                    player.decreaseHealth(); // Player loses a life (you need this method on Player)
+
+                    PatrolEnemy.this.destroy(); // Destroy current enemy
+
+                    // Track player's Y position to respawn after 50 units
+                    float respawnY = player.getPosition().y + 50;
+                    World world = getWorld(); // Save reference before destroy()
+
+                    world.addStepListener(new StepListener() {
+                        private boolean respawned = false;
+
+                        @Override
+                        public void preStep(StepEvent stepEvent) {
+                            if (!respawned && player.getPosition().y >= respawnY) {
+                                respawned = true;
+                                System.out.println("Respawning new PatrolEnemy...");
+
+                                PatrolEnemy newEnemy = new PatrolEnemy(
+                                        world,
+                                        new Vec2(player.getPosition().x, player.getPosition().y + 5),
+                                        player.getPosition().x - 10,
+                                        player.getPosition().x + 10,
+                                        player,
+                                        walkLeftImages,
+                                        walkRightImages,
+                                        frameDelay,
+                                        mode
+                                );
+
+                                world.addStepListener(new StepListener() {
+                                    @Override
+                                    public void preStep(StepEvent e) {
+                                        newEnemy.update();
+                                    }
+                                    @Override
+                                    public void postStep(StepEvent e) {}
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void postStep(StepEvent stepEvent) {}
+                    });
+                }
+            }
+        });
     }
 
     private void setupAnimationTimer() {

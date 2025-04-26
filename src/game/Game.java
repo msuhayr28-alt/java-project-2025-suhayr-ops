@@ -25,10 +25,9 @@ public class Game {
     private int currentLevel = 1;
 
 
-
-
-
-    /** Initialise a new Game. */
+    /**
+     * Initialise a new Game.
+     */
     public Game() {
 
         game = new GameWorld(this, "data/ground.png", "data/ground.png", false, false);
@@ -51,14 +50,13 @@ public class Game {
 
         // create a Java window (frame) and add the game
         // and view it
-        frame = new JFrame("Robo Run: Factory Escape");
+        frame = new JFrame("Wallace's Adventure");
         frame.setLayout(new BorderLayout());
         frame.add(view, BorderLayout.CENTER);
 
         healthLabel = new JLabel(new ImageIcon("data/health4.png"));
-        healthLabel.setBounds(460,5 , 45, 45); // Position at bottom-left
+        healthLabel.setBounds(460, 5, 45, 45); // Position at bottom-left
         view.add(healthLabel);
-
 
 
         // enable the frame to quit the application
@@ -94,7 +92,11 @@ public class Game {
     }
 
     public void goToNextLevel() {
+
         currentLevel++;
+
+        updateScoreDisplay(0);
+        updateHealthDisplay(4);
         if (game != null) {
             game.stop();
         }
@@ -111,7 +113,7 @@ public class Game {
             view.setPlayer(game.getPlayer());
 
             game.start();
-        }else if(currentLevel == 3){
+        } else if (currentLevel == 3) {
             Level3 level3 = new Level3();
             game = level3.createWorld(this);
 
@@ -120,13 +122,13 @@ public class Game {
             view.setPlayer(game.getPlayer());
 
             game.start();
-        }
-        else {
+        } else {
             gameWon();
         }
 
         // Re-attach controls & reset star count on the new player
         Player p = game.getPlayer();
+
         view.setPlayer(p);
         for (KeyListener kl : view.getKeyListeners()) {
             view.removeKeyListener(kl);
@@ -137,10 +139,7 @@ public class Game {
     }
 
 
-
-
-
-    public void updateHealthDisplay(int health){
+    public void updateHealthDisplay(int health) {
         healthLabel.setIcon(new ImageIcon("data/health" + health + ".png"));
         healthLabel.repaint(); // makes the icon change visible
 
@@ -151,12 +150,13 @@ public class Game {
         endScreen("data/gameover.png");
 
     }
+
     public void gameWon() {
 
         endScreen("data/youWin.png");
     }
 
-    private void endScreen(String imagePath){
+    private void endScreen(String imagePath) {
         // Stop the game
         game.stop();
         Sound.stopBackgroundMusic();
@@ -215,12 +215,15 @@ public class Game {
         scoreLabel.setText("Stars: " + score);
 
     }
+
     public GameWorld getWorld() {
         return game;
     }
 
 
-    /** Run the game. */
+    /**
+     * Run the game.
+     */
     public static void main(String[] args) {
         new Game();
     }
