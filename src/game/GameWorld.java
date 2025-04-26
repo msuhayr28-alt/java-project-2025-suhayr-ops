@@ -32,7 +32,7 @@ public class GameWorld extends World {
     private static final float STAR_PROBABILITY = 0.9f;
 
     // Falling spike configuration
-    private static final String[] SPIKE_IMAGES = {"data/spike1.png", "data/spike2.png", "data/spike3.png"};
+    private static String[] SPIKE_IMAGES = {"data/spike1.png", "data/spike2.png", "data/spike3.png"};
     private boolean fallingSpikesEnabled = false;
     private int spikeTimer = 0;
     private int spikeInterval = 180;
@@ -188,9 +188,15 @@ public class GameWorld extends World {
                     new BodyImage("data/enemy_ice2.png", 2),
                     new BodyImage("data/enemy_ice3.png", 2)};
         } else if (isLevel3) {
-            sprites = new BodyImage[]{new BodyImage("data/flameShooter1.png", 4)};
+            sprites = new BodyImage[]{new BodyImage("data/flameShooter1.png", 4),
+                    new BodyImage("data/flameShooter2.png", 4),
+                    new BodyImage("data/flameShooter3.png", 4),
+                    new BodyImage("data/flameShooter4.png", 4)};
         } else {
-            sprites = new BodyImage[]{new BodyImage("data/enemy1.png", 2)};
+            sprites = new BodyImage[]{new BodyImage("data/enemy1.png", 2),
+                    new BodyImage("data/enemy2.png", 2),
+                    new BodyImage("data/enemy3.png", 2),
+                    new BodyImage("data/enemy4.png", 2)};
         }
         String shot = isLevel2 ? "data/ice_shot.png" : isLevel3 ? "data/fireball.png" : "data/shot.png";
         Enemy enemy = new Enemy(this, pos, player, sprites, shot);
@@ -305,6 +311,8 @@ public class GameWorld extends World {
         if (!fallingSpikesEnabled && (isLevel2 || isLevel3)) {
             fallingSpikesEnabled = true;
             spikeInterval = isLevel3 ? 100 : 200;
+        }if(isLevel3){
+            SPIKE_IMAGES = new String[]{"data/fireball.png"};
         }
     }
 

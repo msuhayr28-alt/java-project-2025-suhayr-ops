@@ -106,7 +106,7 @@ public class Player extends Walker {
                     }
 
                     // Proceed to the next level after collecting enough stars
-                    if (starsCollected >= 1) {
+                    if (starsCollected >= 5) {
                         game.goToNextLevel();
                     }
                 }
