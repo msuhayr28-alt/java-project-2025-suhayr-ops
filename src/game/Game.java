@@ -97,6 +97,7 @@ public class Game {
 
         updateScoreDisplay(0);
         updateHealthDisplay(4);
+        Sound.stopBackgroundMusic();
         if (game != null) {
             game.stop();
         }
@@ -111,6 +112,8 @@ public class Game {
             view.setWorld(game);
             view.setBackgroundImage(level2.getBackgroundImage());
             view.setPlayer(game.getPlayer());
+            Sound.playBackgroundMusic("data/ice_music.wav");
+
 
             game.start();
         } else if (currentLevel == 3) {
@@ -120,6 +123,8 @@ public class Game {
             view.setWorld(game);
             view.setBackgroundImage(level3.getBackgroundImage());
             view.setPlayer(game.getPlayer());
+            Sound.playBackgroundMusic("data/level3.wav");
+
 
             game.start();
         } else {
